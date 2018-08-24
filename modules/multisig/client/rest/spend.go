@@ -4,19 +4,19 @@ import (
 	"net/http"
 
 	"encoding/json"
-	"reflect"
 	sdk "sentinel/modules/multisig/types"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	ckeys "github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/crypto/keys"
-	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/wire"
 	stypes "sentinel/modules/multisig/types"
+	"encoding/hex"
+	"github.com/cosmos/cosmos-sdk/types"
 )
 
 type MsgSpendFromMultiSig struct {
-	Spend    stypes.StdtxSpend `json:"spend"`
+	Spend    string `json:"spend"`
 	To       string     `json:"to"`
 	From     string     `json:"from"`
 	Amount   string     `json:"amount"`
@@ -27,7 +27,7 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 	return func(w http.ResponseWriter, r *http.Request) {
 		var msg MsgSpendFromMultiSig
 		var kb keys.Keybase
-		var output stypes.StdtxSpend
+		var Txbytes stypes.StdtxSpend
 
 		// Decoinding the Request
 		if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
@@ -57,8 +57,58 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 		}
 
 		//check the  existing txxbytes
-		if (reflect.DeepEqual(stypes.StdtxSpend{}, msg.Spend)) {
-			bz, err := MsgSpendSignBytes(msg.To, msg.Amount)
+		if (msg.Spend=="") {
+
+			if(msg.Amount==""){
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
+					Success: false,
+					Error: sdk.Error{
+						1,
+						"Enter Amount to send ",
+					},
+				})
+				return
+			}
+
+			if(msg.To==""){
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
+					Success: false,
+					Error: sdk.Error{
+						1,
+						"Enter Ato account",
+					},
+				})
+				return
+			}
+
+			to,err:=types.AccAddressFromBech32(msg.To)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
+					Success: false,
+					Error: sdk.Error{
+						1,
+						"address from bech64 string is failed ",
+					},
+				})
+				return
+			}
+
+			coins,err:=types.ParseCoins(msg.Amount)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
+					Success: false,
+					Error: sdk.Error{
+						1,
+						"Error occurred parse coins ",
+					},
+				})
+				return
+			}
+			bz, err := stypes.MsgSpendSignBytes(to,coins)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
@@ -70,7 +120,7 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 				})
 				return
 			}
-			_, pubkey, err := kb.Sign(msg.From, msg.Password, bz)
+			signature, _, err := kb.Sign(msg.From, msg.Password, bz)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
@@ -83,21 +133,51 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 				return
 			}
 
-			pubkeystr, _ := types.Bech32ifyAccPub(pubkey)
-			output = stypes.StdtxSpend{
-				To:     msg.To,
-				Amount: msg.Amount,
-				Pubkey: append(output.Pubkey, pubkeystr),
+			Txbytes = stypes.StdtxSpend{
+				To:     to,
+				Amount: coins,
+				Signature: append(Txbytes.Signature, signature),
 			}
 
-			data, _ := json.Marshal(output)
-			w.Write(data)
+			data,err:=cdc.MarshalBinary(Txbytes)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
+					Success: false,
+					Error: sdk.Error{
+						1,
+						"Error occurred while marshal binary",
+					},
+				})
+				return
+			}
+
+			result := hex.EncodeToString(data)
+
+			w.Write([]byte(result))
+			return
+
+			}
+
+		data,err:=hex.DecodeString(msg.Spend)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
+				Success: false,
+				Error: sdk.Error{
+					1,
+					"Error occurred while hex decode string failed",
+				},
+			})
 			return
 		}
 
-		bz, err := MsgSpendSignBytes(msg.To, msg.Amount)
+		cdc.UnmarshalBinary(data,&Txbytes)
 
-		_, pubkey, err := kb.Sign(msg.From, msg.Password, bz)
+
+		bz, err := stypes.MsgSpendSignBytes(Txbytes.To, Txbytes.Amount)
+
+		signature, _, err := kb.Sign(msg.From, msg.Password, bz)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
@@ -110,26 +190,25 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 			return
 		}
 
-		pubkeystr, _ := types.Bech32ifyAccPub(pubkey)
+	Txbytes.Signature= append(Txbytes.Signature, signature)
+		output := stypes.NewStdtxSpend(Txbytes.To, Txbytes.Amount, Txbytes.Signature)
 
-		for _, value := range msg.Spend.Pubkey {
-			if value == pubkeystr {
-				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
-					Success: false,
-					Error: sdk.Error{
-						1,
-						"Error occurred the given publickey already exist",
-					},
-				})
-				return
-			}
+		data,err =cdc.MarshalBinary(output)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
+				Success: false,
+				Error: sdk.Error{
+					1,
+					"Error occurred while marshal binary",
+				},
+			})
+			return
 		}
 
-		msg.Spend.Pubkey = append(msg.Spend.Pubkey, pubkeystr)
-		output = stypes.NewStdtxSpend(msg.Spend.To, msg.Spend.Amount, msg.Spend.Pubkey)
+		result := hex.EncodeToString(data)
 
-		data, _ := json.Marshal(output)
-		w.Write(data)
+		w.Write([]byte(result))
 		return
 
 	}

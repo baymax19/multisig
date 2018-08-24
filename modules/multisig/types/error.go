@@ -49,7 +49,7 @@ const (
 	CodeInvalidPubKey sdk.CodeType=197
 	CodeInvalidMultiSigAccount   sdk.CodeType=198
 	CodeSigners      sdk.CodeType=199
-
+	CodeSignatureVerfication  sdk.CodeType=201
 	CodeUnknownRequest  sdk.CodeType = sdk.CodeUnknownRequest
 )
 
@@ -83,6 +83,10 @@ func ErrInvalidMultiSigAccount(msg string) sdk.Error {
 func ErrSigners(msg string) sdk.Error {
 	return newError(DefaultCodespace, CodeSigners,msg)
 }
+func ErrSignatureVerfication(msg string) sdk.Error {
+	return newError(DefaultCodespace, CodeSignatureVerfication,msg)
+}
+
 // -------------------------
 // Helpers
 

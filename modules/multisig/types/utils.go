@@ -2,6 +2,7 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/types"
+	"encoding/json"
 )
 
 //For add signature and publickeys to structure
@@ -11,15 +12,17 @@ type Stdtx struct {
 	Order     bool     `json:"order"`
 	Pubkey    []string `json:"pubkey"`
 	Counter   int64    `json:"counter"`
+	Signature  [][]byte   `json:"signature"`
 }
 
-func NewStdtx(order bool, totalkeys uint8, minkeys uint8, pubkey []string, count int64) Stdtx {
+func NewStdtx(order bool, totalkeys uint8, minkeys uint8, pubkey []string, count int64,sign [][]byte) Stdtx {
 	data := Stdtx{
 		MinKeys:   minkeys,
 		TotalKeys: totalkeys,
 		Order:     order,
 		Pubkey:    pubkey,
 		Counter:   count,
+		Signature:sign,
 	}
 	return data
 }
@@ -27,16 +30,16 @@ func NewStdtx(order bool, totalkeys uint8, minkeys uint8, pubkey []string, count
 
 //For add publikeys to structure
 type StdtxSpend struct {
-	To     string   `json:"to"`
-	Amount string   `json:"amount"`
-	Pubkey []string `json:"pubkey"`
+	To     types.AccAddress   `json:"to"`
+	Amount types.Coins   `json:"amount"`
+	Signature [][]byte `json:"signature"`
 }
 
-func NewStdtxSpend(to string, amount string, pubkey []string) StdtxSpend {
+func NewStdtxSpend(to types.AccAddress, amount types.Coins, sign [][]byte) StdtxSpend {
 	data := StdtxSpend{
 		To:     to,
 		Amount: amount,
-		Pubkey: pubkey,
+		Signature:sign,
 	}
 	return data
 }
@@ -61,4 +64,46 @@ type StdTxSend struct{
 	To types.AccAddress `json:"to"`
 	Amount types.Coins `json:"amount"`
 	Pubkey []string `json:"pubkey"`
+	Signature [][]byte `json:"signature"`
 }
+
+type StdSig struct {
+	MinKeys   uint8 `json:"min_keys,omitempty"`
+	TotalKeys uint8 `json:"total_keys,omitempty"`
+	Order     bool  `json:"order,omitempty"`
+}
+
+func CreateSignBytes(minkey uint8, order bool, totalkeys uint8) ([]byte, error) {
+	bz, err := json.Marshal(StdSig{
+		MinKeys:   minkey,
+		TotalKeys: totalkeys,
+		Order:     order,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return bz, nil
+}
+
+
+
+
+//For sign the Spend txn
+type SendTxBody struct {
+	To    types.AccAddress
+	Amount types.Coins
+}
+
+func MsgSpendSignBytes(to types.AccAddress, amount types.Coins) ([]byte, error) {
+	bz, err := json.Marshal(SendTxBody{
+		To:     to,
+		Amount: amount,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return bz, nil
+}
+

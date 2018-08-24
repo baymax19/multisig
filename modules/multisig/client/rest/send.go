@@ -10,11 +10,11 @@ import (
 	context2 "github.com/cosmos/cosmos-sdk/x/auth/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"sentinel/modules/multisig"
+	"encoding/hex"
 )
 
 type MsgSendFromMultiSig struct {
-	To string `json:"to"`
-	Txbytes types.StdtxSpend `json:"txbytes"`
+	Txbytes string `json:"txbytes"`
 	MultiSigAddress string  `json:"multi_sig_address"`
 	Name string `json:"name"`
 	Password string `json:"password"`
@@ -29,6 +29,7 @@ func multisignatureSendFn(cdc *wire.Codec, cliCtx context.CLIContext) http.Handl
 	return func(w http.ResponseWriter, r *http.Request) {
 		var msg MsgSendFromMultiSig
 		var err error
+		var Txbytes types.StdtxSpend
 
 		// Decoinding the Request
 		if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
@@ -42,6 +43,22 @@ func multisignatureSendFn(cdc *wire.Codec, cliCtx context.CLIContext) http.Handl
 			})
 			return
 		}
+
+		data,err:=hex.DecodeString(msg.Txbytes)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(types.MsgSendFromMultiSig{
+				Success: false,
+				Error: types.Error{
+					1,
+					"Error occurred while hex decode string failed",
+				},
+			})
+			return
+		}
+
+		cdc.UnmarshalBinary(data,&Txbytes)
+
 
 		cliCtx=cliCtx.WithFromAddressName(msg.Name)
 		cliCtx=cliCtx.WithAccountDecoder(authcmd.GetAccountDecoder(cdc))
@@ -81,19 +98,6 @@ func multisignatureSendFn(cdc *wire.Codec, cliCtx context.CLIContext) http.Handl
 			Gas:msg.Gas,
 		}
 
-		to,err:=sdk.AccAddressFromBech32(msg.To)
-		if err!=nil{
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(types.MultiSigAddrCreateResponse{
-				Success: false,
-				Error: types.Error{
-					1,
-					"Error occurred while getting bech32 address to string",
-				},
-			})
-			return
-		}
-
 		multisigaddress,err:=sdk.AccAddressFromBech32(msg.MultiSigAddress)
 		if err!=nil{
 			w.WriteHeader(http.StatusInternalServerError)
@@ -107,26 +111,7 @@ func multisignatureSendFn(cdc *wire.Codec, cliCtx context.CLIContext) http.Handl
 			return
 
 		}
-		coins,err:=sdk.ParseCoins(msg.Txbytes.Amount)
-		if err!=nil{
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(types.MultiSigAddrCreateResponse{
-				Success: false,
-				Error: types.Error{
-					1,
-					"Error occurred while coins parsing is failed",
-				},
-			})
-			return
-
-		}
-
-		bytes:=types.StdTxSend{
-				Amount:coins,
-				To:to,
-				Pubkey:msg.Txbytes.Pubkey,
-		}
-		message:=multisig.NewMsgSendFromMultiSig(to,multisigaddress,bytes,address)
+		message:=multisig.NewMsgSendFromMultiSig(multisigaddress,Txbytes,address)
 
 		txbytes,err:=txcontext.BuildAndSign(msg.Name,msg.Password,[]sdk.Msg{message})
 		if err != nil {

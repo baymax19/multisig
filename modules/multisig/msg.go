@@ -12,6 +12,7 @@ type Stdtx struct {
 	Order     bool     `json:"order"`
 	Pubkey    []string `json:"pubkey"`
 	Counter   int64    `json:"counter"`
+	Signature [][]byte  `json:"signature"`
 }
 
 type MsgCreateMultiSigAddress struct {
@@ -88,16 +89,14 @@ func (msg MsgFundMultiSig) GetSigners() []types.AccAddress {
 
 
 type MsgSendFromMultiSig struct {
-	To types.AccAddress
 	MultiSigAddress types.AccAddress
-	Txbytes types2.StdTxSend
+	Txbytes types2.StdtxSpend
 	Address types.AccAddress
 }
 
-func NewMsgSendFromMultiSig(to types.AccAddress,multisigaddress types.AccAddress,txbytes types2.StdTxSend,address types.AccAddress) MsgSendFromMultiSig{
+func NewMsgSendFromMultiSig(multisigaddress types.AccAddress,txbytes types2.StdtxSpend,address types.AccAddress) MsgSendFromMultiSig{
 		return MsgSendFromMultiSig{
 			Txbytes:txbytes,
-			To:to,
 			MultiSigAddress:multisigaddress,
 			Address:address,
 		}

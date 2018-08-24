@@ -11,12 +11,13 @@ import (
 	context2 "github.com/cosmos/cosmos-sdk/x/auth/client/context"
 	"github.com/cosmos/cosmos-sdk/types"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
+	"encoding/hex"
 )
 
 
 
 type MultiSigAddrCreate struct {
-	Txbytes multisig.Stdtx `json:"txbytes"`
+	Txbytes string `json:"txbytes"`
 	Name    string `json:"name"`
 	Password string  `json:"password"`
 	ChainId   string  `json:"chain_id"`
@@ -30,6 +31,7 @@ func multisignatureCreateAddressFn(cdc *wire.Codec, cliCtx context.CLIContext) h
 	return func(w http.ResponseWriter, r *http.Request) {
 		var msg MultiSigAddrCreate
 		var err error
+		var Txbytes multisig.Stdtx
 
 		// Decoinding the Request
 		if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
@@ -43,6 +45,21 @@ func multisignatureCreateAddressFn(cdc *wire.Codec, cliCtx context.CLIContext) h
 			})
 			return
 		}
+
+		data,err:=hex.DecodeString(msg.Txbytes)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
+				Success: false,
+				Error: sdk.Error{
+					1,
+					"Error occurred while hex decode string failed",
+				},
+			})
+			return
+		}
+
+		cdc.UnmarshalBinary(data,&Txbytes)
 
 		cliCtx=cliCtx.WithFromAddressName(msg.Name)
 		cliCtx=cliCtx.WithAccountDecoder(authcmd.GetAccountDecoder(cdc))
@@ -81,7 +98,7 @@ func multisignatureCreateAddressFn(cdc *wire.Codec, cliCtx context.CLIContext) h
 			AccountNumber:msg.AccountNumber,
 			Gas:msg.Gas,
 		}
-		message:=multisig.NewMsgCreateMultiSigAddress(msg.Txbytes, address)
+		message:=multisig.NewMsgCreateMultiSigAddress(Txbytes, address)
 
 		txbytes,err:=txcontext.BuildAndSign(msg.Name,msg.Password,[]types.Msg{message})
 		if err != nil {

@@ -37,7 +37,6 @@ func(k Keeper)CreateMultiSigAddress(ctx types.Context, msg MsgCreateMultiSigAddr
 
 	sequence,err:=k.account.GetSequence(ctx,msg.Address)
 	if err!=nil{
-			panic(err)
 			return nil,mtypes.ErrInvalidSequence("Invalid sequence")
 	}
 
@@ -46,6 +45,22 @@ func(k Keeper)CreateMultiSigAddress(ctx types.Context, msg MsgCreateMultiSigAddr
 	address:=types.AccAddress(addressgen)
 	account :=k.account.NewAccountWithAddress(ctx,address)
 	k.account.SetAccount(ctx,account)
+
+	for i:=0; i<int(msg.Txbytes.TotalKeys);i++{
+
+		pubkey,err:=types.GetAccPubKeyBech32(msg.Txbytes.Pubkey[i])
+		if err!=nil{
+			return nil,mtypes.ErrInvalidPubKey("convert of bech32 pubkey failed")
+		}
+
+		bz,err:=mtypes.CreateSignBytes(msg.Txbytes.MinKeys,msg.Txbytes.Order,msg.Txbytes.TotalKeys)
+		if err!=nil{
+			return nil,mtypes.ErrMarshal("convert of marshal failed")
+		}
+		if(!pubkey.VerifyBytes(bz,msg.Txbytes.Signature[i])){
+			return nil,mtypes.ErrSignatureVerfication("signature verification failed")
+		}
+	}
 
 	bz, err := json.Marshal(msg.Txbytes)
 	if err!=nil{
@@ -93,6 +108,7 @@ func (k Keeper)FundMultiSig(ctx types.Context, msg MsgFundMultiSig)(types.AccAdd
 
 func (k Keeper) SendFromMultiSig(ctx types.Context,msg MsgSendFromMultiSig) (types.AccAddress,types.Error){
 	var txbytes Stdtx
+	var count int64
 
 	store:=ctx.KVStore(k.multiStoreKey)
 
@@ -105,12 +121,37 @@ func (k Keeper) SendFromMultiSig(ctx types.Context,msg MsgSendFromMultiSig) (typ
 	if err!=nil{
 		return nil,mtypes.ErrUnMarshal("Unmarshal of byte failed")
 	}
-	intersection:=mtypes.Intersection(txbytes.Pubkey,msg.Txbytes.Pubkey)
-	if len(intersection)>= int(txbytes.MinKeys){
-		k.coinKeeper.AddCoins(ctx,msg.To,msg.Txbytes.Amount)
+
+	for i:=0; i<int(txbytes.TotalKeys);i++{
+
+		pubkey,err:=types.GetAccPubKeyBech32(txbytes.Pubkey[i])
+		if err!=nil{
+			return nil,mtypes.ErrInvalidPubKey("convert of bech32 pubkey failed")
+		}
+
+		bz,err:=mtypes.MsgSpendSignBytes(msg.Txbytes.To,msg.Txbytes.Amount)
+		if err!=nil{
+			return nil,mtypes.ErrMarshal("convert of marshal failed")
+		}
+		if(txbytes.Order==true){
+			if(!pubkey.VerifyBytes(bz,msg.Txbytes.Signature[i])){
+				return nil,mtypes.ErrSignatureVerfication("signature verification failed")
+			}
+		}
+		if(txbytes.Order==false){
+		for _,value := range msg.Txbytes.Signature{
+			if(pubkey.VerifyBytes(bz,value)){
+				count++;
+			}
+		}
+		}
+	}
+
+	if count >= int64(txbytes.MinKeys){
+		k.coinKeeper.AddCoins(ctx,msg.Txbytes.To,msg.Txbytes.Amount)
 		k.coinKeeper.SubtractCoins(ctx,msg.MultiSigAddress,msg.Txbytes.Amount)
 	}else {
 		return nil,mtypes.ErrSigners("required minimun no of signers")
 	}
-	return msg.MultiSigAddress,nil
+	return msg.Txbytes.To,nil
 }
