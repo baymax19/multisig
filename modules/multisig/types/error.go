@@ -32,6 +32,11 @@ type MsgFungMultiSigAddrResponse struct {
 	Data    []byte `json:"data,omitempty"`
 }
 
+type MsgSendFromMultiSig struct {
+	Success bool   `json:"success"`
+	Error   Error  `json:"error,omitempty"`
+	Data    []byte `json:"data,omitempty"`
+}
 const (
 	DefaultCodespace sdk.CodespaceType = 19
 
@@ -43,6 +48,8 @@ const (
 	CodeUnMarshal               sdk.CodeType=196
 	CodeInvalidPubKey sdk.CodeType=197
 	CodeInvalidMultiSigAccount   sdk.CodeType=198
+	CodeSigners      sdk.CodeType=199
+
 	CodeUnknownRequest  sdk.CodeType = sdk.CodeUnknownRequest
 )
 
@@ -72,6 +79,9 @@ func ErrInvalidPubKey(msg string) sdk.Error {
 }
 func ErrInvalidMultiSigAccount(msg string) sdk.Error {
 	return newError(DefaultCodespace, CodeInvalidMultiSigAccount,msg)
+}
+func ErrSigners(msg string) sdk.Error {
+	return newError(DefaultCodespace, CodeSigners,msg)
 }
 // -------------------------
 // Helpers

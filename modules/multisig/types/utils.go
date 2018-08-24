@@ -1,6 +1,8 @@
 package types
 
-
+import (
+	"github.com/cosmos/cosmos-sdk/types"
+)
 
 //For add signature and publickeys to structure
 type Stdtx struct {
@@ -37,4 +39,26 @@ func NewStdtxSpend(to string, amount string, pubkey []string) StdtxSpend {
 		Pubkey: pubkey,
 	}
 	return data
+}
+
+
+func Intersection(txbytesfromchain,  txbytesfromuser []string) (c []string) {
+	hash := make(map[string]bool)
+
+	for _, value := range txbytesfromchain {
+		hash[value] = true
+	}
+
+	for _, value := range txbytesfromuser {
+		if _, ok := hash[value]; ok {
+			c = append(c, value)
+		}
+	}
+	return
+}
+
+type StdTxSend struct{
+	To types.AccAddress `json:"to"`
+	Amount types.Coins `json:"amount"`
+	Pubkey []string `json:"pubkey"`
 }

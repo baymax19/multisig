@@ -3,6 +3,7 @@ package multisig
 import (
 	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/types"
+	types2 "sentinel/modules/multisig/types"
 )
 
 type Stdtx struct {
@@ -80,5 +81,44 @@ func (msg MsgFundMultiSig) ValidateBasic() types.Error {
 	return nil
 }
 func (msg MsgFundMultiSig) GetSigners() []types.AccAddress {
+	return []types.AccAddress{msg.Address}
+}
+
+
+
+
+type MsgSendFromMultiSig struct {
+	To types.AccAddress
+	MultiSigAddress types.AccAddress
+	Txbytes types2.StdTxSend
+	Address types.AccAddress
+}
+
+func NewMsgSendFromMultiSig(to types.AccAddress,multisigaddress types.AccAddress,txbytes types2.StdTxSend,address types.AccAddress) MsgSendFromMultiSig{
+		return MsgSendFromMultiSig{
+			Txbytes:txbytes,
+			To:to,
+			MultiSigAddress:multisigaddress,
+			Address:address,
+		}
+}
+
+func (msg MsgSendFromMultiSig) Type() string {
+	return "multisig"
+}
+
+func (msg MsgSendFromMultiSig) GetSignBytes() []byte {
+	byte_format, err := json.Marshal(msg)
+	if err != nil {
+		return nil
+	}
+	return byte_format
+}
+
+func (msg MsgSendFromMultiSig) ValidateBasic() types.Error {
+
+	return nil
+}
+func (msg MsgSendFromMultiSig) GetSigners() []types.AccAddress {
 	return []types.AccAddress{msg.Address}
 }

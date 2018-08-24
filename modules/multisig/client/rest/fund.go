@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"github.com/cosmos/cosmos-sdk/wire"
 	"encoding/json"
-	sdk "sentinel/modules/multisig/types"
+	 "sentinel/modules/multisig/types"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	context2 "github.com/cosmos/cosmos-sdk/x/auth/client/context"
 
 	"sentinel/modules/multisig"
-	"github.com/cosmos/cosmos-sdk/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 type MsgFungMultiSigAddr struct {
 	To string `json:"to"`
@@ -31,9 +31,9 @@ func multisignatureFundFn(cdc *wire.Codec, cliCtx context.CLIContext) http.Handl
 		// Decoinding the Request
 		if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(sdk.MsgFungMultiSigAddrResponse{
+			json.NewEncoder(w).Encode(types.MsgFungMultiSigAddrResponse{
 				Success: false,
-				Error: sdk.Error{
+				Error: types.Error{
 					1,
 					"Error occurred while decoding the request body",
 				},
@@ -47,9 +47,9 @@ func multisignatureFundFn(cdc *wire.Codec, cliCtx context.CLIContext) http.Handl
 		address,err:=cliCtx.GetFromAddress()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(sdk.MultiSigAddrCreateResponse{
+			json.NewEncoder(w).Encode(types.MultiSigAddrCreateResponse{
 				Success: false,
-				Error: sdk.Error{
+				Error: types.Error{
 					1,
 					"Error occurred while retrive the address",
 				},
@@ -60,9 +60,9 @@ func multisignatureFundFn(cdc *wire.Codec, cliCtx context.CLIContext) http.Handl
 		account,err := cliCtx.GetAccount(address)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(sdk.MultiSigAddrCreateResponse{
+			json.NewEncoder(w).Encode(types.MultiSigAddrCreateResponse{
 				Success: false,
-				Error: sdk.Error{
+				Error: types.Error{
 					1,
 					"Error occurred while retrive the account",
 				},
@@ -80,12 +80,12 @@ func multisignatureFundFn(cdc *wire.Codec, cliCtx context.CLIContext) http.Handl
 			Gas:msg.Gas,
 		}
 
-		coins,err:=types.ParseCoins(msg.Amount)
+		coins,err:=sdk.ParseCoins(msg.Amount)
 		if err!=nil{
 			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(sdk.MultiSigAddrCreateResponse{
+			json.NewEncoder(w).Encode(types.MultiSigAddrCreateResponse{
 				Success: false,
-				Error: sdk.Error{
+				Error: types.Error{
 					1,
 					"Error occurred while coins parsing is failed",
 				},
@@ -94,12 +94,12 @@ func multisignatureFundFn(cdc *wire.Codec, cliCtx context.CLIContext) http.Handl
 
 		}
 
-		to,err:=types.AccAddressFromBech32(msg.To)
+		to,err:=sdk.AccAddressFromBech32(msg.To)
 		if err!=nil{
 			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(sdk.MultiSigAddrCreateResponse{
+			json.NewEncoder(w).Encode(types.MultiSigAddrCreateResponse{
 				Success: false,
-				Error: sdk.Error{
+				Error: types.Error{
 					1,
 					"Error occurred while getting bech32 address from string",
 				},
@@ -110,12 +110,12 @@ func multisignatureFundFn(cdc *wire.Codec, cliCtx context.CLIContext) http.Handl
 
 		message:=multisig.NewMsgFundMultiSig(to,address,coins)
 
-		txbytes,err:=txcontext.BuildAndSign(msg.Name,msg.Password,[]types.Msg{message})
+		txbytes,err:=txcontext.BuildAndSign(msg.Name,msg.Password,[]sdk.Msg{message})
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(sdk.MultiSigAddrCreateResponse{
+			json.NewEncoder(w).Encode(types.MultiSigAddrCreateResponse{
 				Success: false,
-				Error: sdk.Error{
+				Error: types.Error{
 					1,
 					"Error occurred while retrive the txbytes",
 				},
@@ -127,9 +127,9 @@ func multisignatureFundFn(cdc *wire.Codec, cliCtx context.CLIContext) http.Handl
 		if err != nil {
 			panic(err)
 			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(sdk.MultiSigAddrCreateResponse{
+			json.NewEncoder(w).Encode(types.MultiSigAddrCreateResponse{
 				Success: false,
-				Error: sdk.Error{
+				Error: types.Error{
 					1,
 					"Error occurred while txbytes broadcast failed",
 				},
@@ -140,9 +140,9 @@ func multisignatureFundFn(cdc *wire.Codec, cliCtx context.CLIContext) http.Handl
 		output, err := wire.MarshalJSONIndent(cdc, res)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(sdk.MultiSigAddrCreateResponse{
+			json.NewEncoder(w).Encode(types.MultiSigAddrCreateResponse{
 				Success: false,
-				Error: sdk.Error{
+				Error: types.Error{
 					1,
 					"Error occurred while retrive data",
 				},

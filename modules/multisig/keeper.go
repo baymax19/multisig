@@ -90,3 +90,27 @@ func (k Keeper)FundMultiSig(ctx types.Context, msg MsgFundMultiSig)(types.AccAdd
 	k.coinKeeper.AddCoins(ctx,msg.To,msg.Amount)
 	return msg.To,nil
 }
+
+func (k Keeper) SendFromMultiSig(ctx types.Context,msg MsgSendFromMultiSig) (types.AccAddress,types.Error){
+	var txbytes Stdtx
+
+	store:=ctx.KVStore(k.multiStoreKey)
+
+	data:=store.Get([]byte(msg.MultiSigAddress))
+	if data==nil{
+		return nil,mtypes.ErrDataFromKVStore("Failed to get data from KVStore")
+	}
+
+	err:=json.Unmarshal(data,&txbytes)
+	if err!=nil{
+		return nil,mtypes.ErrUnMarshal("Unmarshal of byte failed")
+	}
+	intersection:=mtypes.Intersection(txbytes.Pubkey,msg.Txbytes.Pubkey)
+	if len(intersection)>= int(txbytes.MinKeys){
+		k.coinKeeper.AddCoins(ctx,msg.To,msg.Txbytes.Amount)
+		k.coinKeeper.SubtractCoins(ctx,msg.MultiSigAddress,msg.Txbytes.Amount)
+	}else {
+		return nil,mtypes.ErrSigners("required minimun no of signers")
+	}
+	return msg.MultiSigAddress,nil
+}
