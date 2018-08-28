@@ -6,20 +6,21 @@ import (
 	"encoding/json"
 	sdk "sentinel/modules/multisig/types"
 
+	"encoding/base64"
+	"sentinel/modules/multisig"
+	stypes "sentinel/modules/multisig/types"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	ckeys "github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/crypto/keys"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/wire"
-	stypes "sentinel/modules/multisig/types"
-	"encoding/hex"
-	"sentinel/modules/multisig"
 )
 
 type MultiSignature struct {
-	Txbytes   string  `json:"txbytes,omitempty"`
-	MinKeys   uint8  `json:"min_keys,omitempty"`
-	TotalKeys uint8  `json:"total_keys,omitempty"`
+	Txbytes   string `json:"txbytes,omitempty"`
+	MinKeys   *uint8 `json:"min_keys,omitempty"`
+	TotalKeys *uint8 `json:"total_keys,omitempty"`
 	Order     bool   `json:"order,omitempty"`
 	Name      string `json:"name"`
 	Password  string `json:"password"`
@@ -45,8 +46,6 @@ func multisignatureCreateSignHandlerFn(cdc *wire.Codec, cliCtx context.CLIContex
 			return
 		}
 
-
-
 		// Fetching the keybase
 		kb, err = ckeys.GetKeyBase()
 		if err != nil {
@@ -62,35 +61,47 @@ func multisignatureCreateSignHandlerFn(cdc *wire.Codec, cliCtx context.CLIContex
 		}
 
 		//Check the txbytes exist or not
-		if   msg.Txbytes == "" {
+		if msg.Txbytes == "" {
 
-			if(msg.MinKeys<1){
+			if msg.MinKeys == nil || msg.TotalKeys == nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
 					Success: false,
 					Error: sdk.Error{
 						1,
-						"Reuiree at least one key",
-					},
-				})
-				return
-			}
-
-			if(msg.TotalKeys<2 || msg.MinKeys>msg.TotalKeys) {
-				w.WriteHeader(http.StatusInternalServerError)
-				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
-					Success: false,
-					Error: sdk.Error{
-						1,
-						"total keys grater than min keys",
+						"Insufficient of data",
 					},
 				})
 				return
 
 			}
 
+			if *msg.MinKeys < 1 {
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
+					Success: false,
+					Error: sdk.Error{
+						1,
+						"Requir at least one key",
+					},
+				})
+				return
+			}
 
-			bz, err := stypes.CreateSignBytes(msg.MinKeys, msg.Order, msg.TotalKeys)
+			if *msg.TotalKeys < 2 || *msg.MinKeys > *msg.TotalKeys || *msg.TotalKeys > 10 {
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
+					Success: false,
+					Error: sdk.Error{
+						1,
+						"min keys are grater than total keys or  max keys greaterthan upper bond 10	",
+					},
+				})
+				return
+
+			}
+
+			bz, err := stypes.CreateSignBytes(*msg.MinKeys, msg.Order, *msg.TotalKeys)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
@@ -116,17 +127,31 @@ func multisignatureCreateSignHandlerFn(cdc *wire.Codec, cliCtx context.CLIContex
 				return
 			}
 
-			pubkeystr, _ := types.Bech32ifyAccPub(pubkey)
+			pubkeystr, err := types.Bech32ifyAccPub(pubkey)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
+					Success: false,
+					Error: sdk.Error{
+						1,
+						"Error while converting the pubkey to string",
+					},
+				})
+				return
+			}
+
+			pubkey_encode := base64.StdEncoding.EncodeToString([]byte(pubkeystr))
+
 			output := multisig.Stdtx{
-				MinKeys:   msg.MinKeys,
-				TotalKeys: msg.TotalKeys,
+				MinKeys:   *msg.MinKeys,
+				TotalKeys: *msg.TotalKeys,
 				Order:     msg.Order,
-				Pubkey:    append(Txbytes.Pubkey, pubkeystr),
-				Counter:   0,
+				Pubkey:    append(Txbytes.Pubkey, pubkey_encode),
+				Counter:   1,
 				Signature: append(Txbytes.Signature, signature),
 			}
 
-			data,err:=cdc.MarshalBinary(output)
+			data, err := cdc.MarshalBinary(output)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
@@ -139,29 +164,52 @@ func multisignatureCreateSignHandlerFn(cdc *wire.Codec, cliCtx context.CLIContex
 				return
 			}
 
-			result := hex.EncodeToString(data)
-
-			w.Write([]byte(result))
+			data1 := base64.StdEncoding.EncodeToString(data)
+			w.Write([]byte(data1))
 			return
 		}
 
-		data,err:=hex.DecodeString(msg.Txbytes)
+		if msg.MinKeys != nil || msg.TotalKeys != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
+				Success: false,
+				Error: sdk.Error{
+					1,
+					"Error occurred Not allowed of minkeys , order ,totalkeys",
+				},
+			})
+			return
+		}
+
+		data, err := base64.StdEncoding.DecodeString(msg.Txbytes)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
 				Success: false,
 				Error: sdk.Error{
 					1,
-					"Error occurred while hex decode string failed",
+					"Error occurred while decode txbytes failed",
 				},
 			})
 			return
 		}
 
-		cdc.UnmarshalBinary(data,&Txbytes)
+		err = cdc.UnmarshalBinary(data, &Txbytes)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
+				Success: false,
+				Error: sdk.Error{
+					1,
+					"Error occurred while unmarshal txbytes",
+				},
+			})
+			return
+
+		}
 
 		//check for required  no.of keys
-		if uint8(Txbytes.Counter) < Txbytes.TotalKeys-1 {
+		if uint8(len(Txbytes.Pubkey)) < Txbytes.TotalKeys {
 
 			bz, err := stypes.CreateSignBytes(Txbytes.MinKeys, Txbytes.Order, Txbytes.TotalKeys)
 			if err != nil {
@@ -178,9 +226,10 @@ func multisignatureCreateSignHandlerFn(cdc *wire.Codec, cliCtx context.CLIContex
 
 			signature, pubkey, _ := kb.Sign(msg.Name, msg.Password, bz)
 			pubkeystr, _ := types.Bech32ifyAccPub(pubkey)
+			pubkey_encode := base64.StdEncoding.EncodeToString([]byte(pubkeystr))
 
 			for _, value := range Txbytes.Pubkey {
-				if value == pubkeystr {
+				if value == pubkey_encode {
 					json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
 						Success: false,
 						Error: sdk.Error{
@@ -192,11 +241,11 @@ func multisignatureCreateSignHandlerFn(cdc *wire.Codec, cliCtx context.CLIContex
 				}
 			}
 
-			Txbytes.Pubkey = append(Txbytes.Pubkey, pubkeystr)
-			Txbytes.Signature= append(Txbytes.Signature, signature)
-			output := stypes.NewStdtx(Txbytes.Order, Txbytes.TotalKeys, Txbytes.MinKeys, Txbytes.Pubkey, Txbytes.Counter+1,Txbytes.Signature)
+			Txbytes.Pubkey = append(Txbytes.Pubkey, pubkey_encode)
+			Txbytes.Signature = append(Txbytes.Signature, signature)
+			output := stypes.NewStdtx(Txbytes.Order, Txbytes.TotalKeys, Txbytes.MinKeys, Txbytes.Pubkey, 1, Txbytes.Signature)
 
-			data,err:=cdc.MarshalBinary(output)
+			data, err := cdc.MarshalBinary(output)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
@@ -209,9 +258,19 @@ func multisignatureCreateSignHandlerFn(cdc *wire.Codec, cliCtx context.CLIContex
 				return
 			}
 
-			result := hex.EncodeToString(data)
-
-			w.Write([]byte(result))
+			encode_data := base64.StdEncoding.EncodeToString(data)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
+					Success: false,
+					Error: sdk.Error{
+						1,
+						"Error occurred conversion of base64",
+					},
+				})
+				return
+			}
+			w.Write([]byte(encode_data))
 			return
 		}
 

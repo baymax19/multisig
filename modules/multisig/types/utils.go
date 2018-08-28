@@ -1,8 +1,9 @@
 package types
 
 import (
-	"github.com/cosmos/cosmos-sdk/types"
 	"encoding/json"
+
+	"github.com/cosmos/cosmos-sdk/types"
 )
 
 //For add signature and publickeys to structure
@@ -12,40 +13,42 @@ type Stdtx struct {
 	Order     bool     `json:"order"`
 	Pubkey    []string `json:"pubkey"`
 	Counter   int64    `json:"counter"`
-	Signature  [][]byte   `json:"signature"`
+	Signature [][]byte `json:"signature"`
 }
 
-func NewStdtx(order bool, totalkeys uint8, minkeys uint8, pubkey []string, count int64,sign [][]byte) Stdtx {
+func NewStdtx(order bool, totalkeys uint8, minkeys uint8, pubkey []string, count int64, sign [][]byte) Stdtx {
 	data := Stdtx{
 		MinKeys:   minkeys,
 		TotalKeys: totalkeys,
 		Order:     order,
 		Pubkey:    pubkey,
 		Counter:   count,
-		Signature:sign,
+		Signature: sign,
 	}
 	return data
 }
-
 
 //For add publikeys to structure
 type StdtxSpend struct {
-	To     types.AccAddress   `json:"to"`
-	Amount types.Coins   `json:"amount"`
-	Signature [][]byte `json:"signature"`
+	To              types.AccAddress `json:"to"`
+	MultiSigAddress types.AccAddress `json:"multi_sig_address`
+	Amount          types.Coins      `json:"amount"`
+	Signature       [][]byte         `json:"signature"`
+	TxNumber        int64            `json:"tx_number"`
 }
 
-func NewStdtxSpend(to types.AccAddress, amount types.Coins, sign [][]byte) StdtxSpend {
+func NewStdtxSpend(to types.AccAddress, maddress types.AccAddress,amount types.Coins, sign [][]byte, tx_number int64) StdtxSpend {
 	data := StdtxSpend{
-		To:     to,
-		Amount: amount,
-		Signature:sign,
+		To:        to,
+		MultiSigAddress:maddress,
+		Amount:    amount,
+		Signature: sign,
+		TxNumber:  tx_number,
 	}
 	return data
 }
 
-
-func Intersection(txbytesfromchain,  txbytesfromuser []string) (c []string) {
+func Intersection(txbytesfromchain, txbytesfromuser []string) (c []string) {
 	hash := make(map[string]bool)
 
 	for _, value := range txbytesfromchain {
@@ -60,11 +63,11 @@ func Intersection(txbytesfromchain,  txbytesfromuser []string) (c []string) {
 	return
 }
 
-type StdTxSend struct{
-	To types.AccAddress `json:"to"`
-	Amount types.Coins `json:"amount"`
-	Pubkey []string `json:"pubkey"`
-	Signature [][]byte `json:"signature"`
+type StdTxSend struct {
+	To        types.AccAddress `json:"to"`
+	Amount    types.Coins      `json:"amount"`
+	Pubkey    []string         `json:"pubkey"`
+	Signature [][]byte         `json:"signature"`
 }
 
 type StdSig struct {
@@ -86,19 +89,18 @@ func CreateSignBytes(minkey uint8, order bool, totalkeys uint8) ([]byte, error) 
 	return bz, nil
 }
 
-
-
-
 //For sign the Spend txn
 type SendTxBody struct {
-	To    types.AccAddress
+	To     types.AccAddress
 	Amount types.Coins
+	MultiSigAddress types.AccAddress
 }
 
-func MsgSpendSignBytes(to types.AccAddress, amount types.Coins) ([]byte, error) {
+func MsgSpendSignBytes(to types.AccAddress, amount types.Coins,maddress types.AccAddress) ([]byte, error) {
 	bz, err := json.Marshal(SendTxBody{
 		To:     to,
 		Amount: amount,
+		MultiSigAddress :maddress,
 	})
 
 	if err != nil {
@@ -106,4 +108,3 @@ func MsgSpendSignBytes(to types.AccAddress, amount types.Coins) ([]byte, error) 
 	}
 	return bz, nil
 }
-

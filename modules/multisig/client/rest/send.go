@@ -10,12 +10,11 @@ import (
 	context2 "github.com/cosmos/cosmos-sdk/x/auth/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"sentinel/modules/multisig"
-	"encoding/hex"
+	"encoding/base64"
 )
 
 type MsgSendFromMultiSig struct {
 	Txbytes string `json:"txbytes"`
-	MultiSigAddress string  `json:"multi_sig_address"`
 	Name string `json:"name"`
 	Password string `json:"password"`
 	ChainId string `json:"chain_id"`
@@ -44,20 +43,46 @@ func multisignatureSendFn(cdc *wire.Codec, cliCtx context.CLIContext) http.Handl
 			return
 		}
 
-		data,err:=hex.DecodeString(msg.Txbytes)
+		if(msg.Txbytes=="") {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(types.MsgSendFromMultiSig{
+				Success: false,
+				Error: types.Error{
+					1,
+					"Error occurred while tx bytes nil",
+				},
+			})
+			return
+
+		}
+
+
+		data,err:=base64.StdEncoding.DecodeString(msg.Txbytes)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(types.MsgSendFromMultiSig{
 				Success: false,
 				Error: types.Error{
 					1,
-					"Error occurred while hex decode string failed",
+					"Error occurred while deocding tx bytes failed",
 				},
 			})
 			return
 		}
 
-		cdc.UnmarshalBinary(data,&Txbytes)
+		err = cdc.UnmarshalBinary(data,&Txbytes)
+		if err!=nil{
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(types.MsgSendFromMultiSig{
+				Success: false,
+				Error: types.Error{
+					1,
+					"Error occurred while unmarshal data",
+				},
+			})
+			return
+
+		}
 
 
 		cliCtx=cliCtx.WithFromAddressName(msg.Name)
@@ -98,20 +123,8 @@ func multisignatureSendFn(cdc *wire.Codec, cliCtx context.CLIContext) http.Handl
 			Gas:msg.Gas,
 		}
 
-		multisigaddress,err:=sdk.AccAddressFromBech32(msg.MultiSigAddress)
-		if err!=nil{
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(types.MultiSigAddrCreateResponse{
-				Success: false,
-				Error: types.Error{
-					1,
-					"Error occurred while getting bech32 address multisg string",
-				},
-			})
-			return
 
-		}
-		message:=multisig.NewMsgSendFromMultiSig(multisigaddress,Txbytes,address)
+		message:=multisig.NewMsgSendFromMultiSig(Txbytes,address)
 
 		txbytes,err:=txcontext.BuildAndSign(msg.Name,msg.Password,[]sdk.Msg{message})
 		if err != nil {

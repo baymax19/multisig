@@ -53,7 +53,7 @@ func handleMsgSendFromMultiSig(ctx types.Context, keeper Keeper, msg MsgSendFrom
 		return err.Result()
 	}
 	//d, _ := keeper.cdc.MarshalJSON(msg)
-	tag:=types.NewTags("multisig adddress",[]byte(msg.MultiSigAddress.String())).AppendTag("reciver address",[]byte(address.String()))
+	tag:=types.NewTags("multisig adddress",[]byte(msg.Txbytes.MultiSigAddress.String())).AppendTag("reciver address",[]byte(address.String()))
 	return types.Result{
 		Data: address,
 		Tags:tag,

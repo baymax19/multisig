@@ -50,6 +50,8 @@ const (
 	CodeInvalidMultiSigAccount   sdk.CodeType=198
 	CodeSigners      sdk.CodeType=199
 	CodeSignatureVerfication  sdk.CodeType=201
+	CodeTxNumber sdk.CodeType=202
+	CodeInsufficientCoins   sdk.CodeType=203
 	CodeUnknownRequest  sdk.CodeType = sdk.CodeUnknownRequest
 )
 
@@ -86,7 +88,13 @@ func ErrSigners(msg string) sdk.Error {
 func ErrSignatureVerfication(msg string) sdk.Error {
 	return newError(DefaultCodespace, CodeSignatureVerfication,msg)
 }
-
+func ErrTxNumber(msg string) sdk.Error {
+	return newError(DefaultCodespace, CodeTxNumber,msg)
+}
+func ErrInsufficientCoins(msg string) sdk.Error {
+	return newError(DefaultCodespace, CodeInsufficientCoins,msg)
+}
+//
 // -------------------------
 // Helpers
 

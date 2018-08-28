@@ -89,15 +89,13 @@ func (msg MsgFundMultiSig) GetSigners() []types.AccAddress {
 
 
 type MsgSendFromMultiSig struct {
-	MultiSigAddress types.AccAddress
 	Txbytes types2.StdtxSpend
 	Address types.AccAddress
 }
 
-func NewMsgSendFromMultiSig(multisigaddress types.AccAddress,txbytes types2.StdtxSpend,address types.AccAddress) MsgSendFromMultiSig{
+func NewMsgSendFromMultiSig(txbytes types2.StdtxSpend,address types.AccAddress) MsgSendFromMultiSig{
 		return MsgSendFromMultiSig{
 			Txbytes:txbytes,
-			MultiSigAddress:multisigaddress,
 			Address:address,
 		}
 }
