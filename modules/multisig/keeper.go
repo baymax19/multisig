@@ -5,12 +5,13 @@ import (
 	mtypes "sentinel/modules/multisig/types"
 	"strconv"
 
+	"encoding/base64"
+
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/wire"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/tendermint/tendermint/crypto"
-	"encoding/base64"
 )
 
 type Keeper struct {
@@ -43,15 +44,16 @@ func (k Keeper) CreateMultiSigAddress(ctx types.Context, msg MsgCreateMultiSigAd
 	}
 
 	if len(msg.Txbytes.Signature) != int(msg.Txbytes.TotalKeys) {
-		return nil, mtypes.ErrSignatureVerfication("signatures or pubkeys are not equal to  "+strconv.Itoa(int(msg.Txbytes.TotalKeys))+"total keys")
+		return nil, mtypes.ErrSignatureVerfication("signatures or pubkeys are not equal to  " + strconv.Itoa(int(msg.Txbytes.TotalKeys)) + "total keys")
 	}
 
 	for i := 0; i < int(msg.Txbytes.TotalKeys); i++ {
 
-		pubkey_decode,err:=base64.StdEncoding.DecodeString(msg.Txbytes.Pubkey[i])
-		if err!=nil{
+		pubkey_decode, err := base64.StdEncoding.DecodeString(msg.Txbytes.Pubkey[i])
+		if err != nil {
 			return nil, mtypes.ErrInvalidPubKey("pubkey decoding is failed")
 		}
+
 		pubkey, err := types.GetAccPubKeyBech32(string(pubkey_decode))
 		if err != nil {
 			return nil, mtypes.ErrInvalidPubKey("convert of bech32 pubkey failed")
@@ -78,6 +80,7 @@ func (k Keeper) CreateMultiSigAddress(ctx types.Context, msg MsgCreateMultiSigAd
 	if err != nil {
 		return nil, mtypes.ErrMarshal("marshal bytes failed")
 	}
+
 	store.Set([]byte(address), bz)
 	return address, nil
 }
@@ -101,9 +104,9 @@ func (k Keeper) FundMultiSig(ctx types.Context, msg MsgFundMultiSig) (types.AccA
 	if err != nil {
 		return nil, mtypes.ErrInsufficientCoins("Insufficient funds from account ")
 	}
-	_, _, err =k.coinKeeper.AddCoins(ctx, msg.To, msg.Amount)
-	if err!=nil{
-		return nil,mtypes.ErrInsufficientCoins("Insuffiecient funds")
+	_, _, err = k.coinKeeper.AddCoins(ctx, msg.To, msg.Amount)
+	if err != nil {
+		return nil, mtypes.ErrInsufficientCoins("Insuffiecient funds")
 	}
 	return msg.To, nil
 }
@@ -111,6 +114,7 @@ func (k Keeper) FundMultiSig(ctx types.Context, msg MsgFundMultiSig) (types.AccA
 func (k Keeper) SendFromMultiSig(ctx types.Context, msg MsgSendFromMultiSig) (types.AccAddress, types.Error) {
 	var txbytes Stdtx
 	var count int64
+	var index int64
 
 	store := ctx.KVStore(k.multiStoreKey)
 
@@ -124,10 +128,15 @@ func (k Keeper) SendFromMultiSig(ctx types.Context, msg MsgSendFromMultiSig) (ty
 		return nil, mtypes.ErrUnMarshal("Unmarshal of byte failed")
 	}
 
+	if len(msg.Txbytes.Signature) < int((txbytes.MinKeys)) {
+
+		return nil, mtypes.ErrSigners("required minimun no of signers ")
+	}
+
 	for i := 0; i < len(txbytes.Pubkey); i++ {
 
-		pukey_decode,err:=base64.StdEncoding.DecodeString(txbytes.Pubkey[i])
-		if err!=nil{
+		pukey_decode, err := base64.StdEncoding.DecodeString(txbytes.Pubkey[i])
+		if err != nil {
 			return nil, mtypes.ErrInvalidPubKey("decode of  pubkey failed")
 		}
 
@@ -136,16 +145,20 @@ func (k Keeper) SendFromMultiSig(ctx types.Context, msg MsgSendFromMultiSig) (ty
 			return nil, mtypes.ErrInvalidPubKey("convert of bech32 pubkey failed")
 		}
 
-		bz, err := mtypes.MsgSpendSignBytes(msg.Txbytes.To, msg.Txbytes.Amount,msg.Txbytes.MultiSigAddress)
+		bz, err := mtypes.MsgSpendSignBytes(msg.Txbytes.To, msg.Txbytes.Amount, msg.Txbytes.MultiSigAddress)
 		if err != nil {
 			return nil, mtypes.ErrMarshal("convert of marshal failed")
 		}
 
-		if txbytes.Order == true && count < int64((txbytes.MinKeys)) && i < len(msg.Txbytes.Signature) {
-			if !pubkey.VerifyBytes(bz, msg.Txbytes.Signature[i]) {
-				return nil, mtypes.ErrSignatureVerfication("signature verification failed order is not equal")
+		if txbytes.Order == true && count < int64((txbytes.MinKeys)) {
+
+			if !pubkey.VerifyBytes(bz, msg.Txbytes.Signature[index]) {
+				count = 0
+				continue
 			}
+			index++
 			count++
+
 		}
 		if txbytes.Order == false {
 
@@ -157,32 +170,32 @@ func (k Keeper) SendFromMultiSig(ctx types.Context, msg MsgSendFromMultiSig) (ty
 		}
 
 	}
+
 	if txbytes.Counter != msg.Txbytes.TxNumber {
-		return nil, mtypes.ErrTxNumber("Tx number is invalid got this  "+strconv.Itoa(int(msg.Txbytes.TxNumber))+" expected this  "+strconv.Itoa(int(txbytes.Counter)))
+		return nil, mtypes.ErrTxNumber("Tx number is invalid got this  " + strconv.Itoa(int(msg.Txbytes.TxNumber)) + " expected this  " + strconv.Itoa(int(txbytes.Counter)))
 
 	}
-	if count <int64(txbytes.MinKeys){
-		return nil, mtypes.ErrSigners("required minimun no of signers")
+
+	if count < int64(txbytes.MinKeys) {
+		return nil, mtypes.ErrSigners("required minimun no of signers or  order is not same")
 	}
 
-
-		_, _, err = k.coinKeeper.SubtractCoins(ctx, msg.Txbytes.MultiSigAddress, msg.Txbytes.Amount)
-		if err != nil {
-			return nil, mtypes.ErrInsufficientCoins("Insufficient funds from multisig wallet")
-		}
-		_, _, err=k.coinKeeper.AddCoins(ctx, msg.Txbytes.To, msg.Txbytes.Amount)
-		if err!=nil{
-			return nil, mtypes.ErrInsufficientCoins("Insufficient funds")
-		}
-
-
+	_, _, err = k.coinKeeper.SubtractCoins(ctx, msg.Txbytes.MultiSigAddress, msg.Txbytes.Amount)
+	if err != nil {
+		return nil, mtypes.ErrInsufficientCoins("Insufficient funds from multisig wallet")
+	}
+	_, _, err = k.coinKeeper.AddCoins(ctx, msg.Txbytes.To, msg.Txbytes.Amount)
+	if err != nil {
+		return nil, mtypes.ErrInsufficientCoins("Insufficient funds")
+	}
 
 	txbytes.Counter++
+
 	bz, err := json.Marshal(txbytes)
 	if err != nil {
 		return nil, mtypes.ErrMarshal("marshal bytes failed")
 	}
-	store.Set([]byte(msg.Txbytes.MultiSigAddress), bz)
 
+	store.Set([]byte(msg.Txbytes.MultiSigAddress), bz)
 	return msg.Txbytes.To, nil
 }

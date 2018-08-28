@@ -2,8 +2,9 @@ package multisig
 
 import (
 	"encoding/json"
-	"github.com/cosmos/cosmos-sdk/types"
 	types2 "sentinel/modules/multisig/types"
+
+	"github.com/cosmos/cosmos-sdk/types"
 )
 
 type Stdtx struct {
@@ -12,22 +13,20 @@ type Stdtx struct {
 	Order     bool     `json:"order"`
 	Pubkey    []string `json:"pubkey"`
 	Counter   int64    `json:"counter"`
-	Signature [][]byte  `json:"signature"`
+	Signature [][]byte `json:"signature"`
 }
 
 type MsgCreateMultiSigAddress struct {
-	Txbytes Stdtx `json:"txbytes"`
-	Address  types.AccAddress `json:"from"`
+	Txbytes Stdtx            `json:"txbytes"`
+	Address types.AccAddress `json:"from"`
 }
 
-func NewMsgCreateMultiSigAddress(txbytes Stdtx,address types.AccAddress) MsgCreateMultiSigAddress{
+func NewMsgCreateMultiSigAddress(txbytes Stdtx, address types.AccAddress) MsgCreateMultiSigAddress {
 	return MsgCreateMultiSigAddress{
-		Txbytes:txbytes,
-		Address:address,
+		Txbytes: txbytes,
+		Address: address,
 	}
 }
-
-
 
 func (msg MsgCreateMultiSigAddress) Type() string {
 	return "multisig"
@@ -49,19 +48,17 @@ func (msg MsgCreateMultiSigAddress) GetSigners() []types.AccAddress {
 	return []types.AccAddress{msg.Address}
 }
 
-
-type MsgFundMultiSig struct{
-	To types.AccAddress
+type MsgFundMultiSig struct {
+	To      types.AccAddress
 	Address types.AccAddress
-	Amount types.Coins
-
+	Amount  types.Coins
 }
 
-func NewMsgFundMultiSig(to types.AccAddress,from types.AccAddress,coins types.Coins) MsgFundMultiSig{
+func NewMsgFundMultiSig(to types.AccAddress, from types.AccAddress, coins types.Coins) MsgFundMultiSig {
 	return MsgFundMultiSig{
-		To:to,
-		Address:from,
-		Amount:coins,
+		To:      to,
+		Address: from,
+		Amount:  coins,
 	}
 }
 
@@ -85,19 +82,16 @@ func (msg MsgFundMultiSig) GetSigners() []types.AccAddress {
 	return []types.AccAddress{msg.Address}
 }
 
-
-
-
 type MsgSendFromMultiSig struct {
 	Txbytes types2.StdtxSpend
 	Address types.AccAddress
 }
 
-func NewMsgSendFromMultiSig(txbytes types2.StdtxSpend,address types.AccAddress) MsgSendFromMultiSig{
-		return MsgSendFromMultiSig{
-			Txbytes:txbytes,
-			Address:address,
-		}
+func NewMsgSendFromMultiSig(txbytes types2.StdtxSpend, address types.AccAddress) MsgSendFromMultiSig {
+	return MsgSendFromMultiSig{
+		Txbytes: txbytes,
+		Address: address,
+	}
 }
 
 func (msg MsgSendFromMultiSig) Type() string {

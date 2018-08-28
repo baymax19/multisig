@@ -1,28 +1,27 @@
 package rest
 
 import (
-	"github.com/cosmos/cosmos-sdk/client/context"
-	"net/http"
-	"sentinel/modules/multisig/types"
-	"github.com/cosmos/cosmos-sdk/wire"
+	"encoding/base64"
 	"encoding/json"
+	"net/http"
+	"sentinel/modules/multisig"
+	"sentinel/modules/multisig/types"
+
+	"github.com/cosmos/cosmos-sdk/client/context"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/wire"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	context2 "github.com/cosmos/cosmos-sdk/x/auth/client/context"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"sentinel/modules/multisig"
-	"encoding/base64"
 )
 
 type MsgSendFromMultiSig struct {
-	Txbytes string `json:"txbytes"`
-	Name string `json:"name"`
-	Password string `json:"password"`
-	ChainId string `json:"chain_id"`
-	AccountNumber int64 `json:"account_number"`
-	Gas int64 `json:"gas"`
-
+	Txbytes       string `json:"txbytes"`
+	Name          string `json:"name"`
+	Password      string `json:"password"`
+	ChainId       string `json:"chain_id"`
+	AccountNumber int64  `json:"account_number"`
+	Gas           int64  `json:"gas"`
 }
-
 
 func multisignatureSendFn(cdc *wire.Codec, cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +42,7 @@ func multisignatureSendFn(cdc *wire.Codec, cliCtx context.CLIContext) http.Handl
 			return
 		}
 
-		if(msg.Txbytes=="") {
+		if msg.Txbytes == "" {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(types.MsgSendFromMultiSig{
 				Success: false,
@@ -56,8 +55,7 @@ func multisignatureSendFn(cdc *wire.Codec, cliCtx context.CLIContext) http.Handl
 
 		}
 
-
-		data,err:=base64.StdEncoding.DecodeString(msg.Txbytes)
+		data, err := base64.StdEncoding.DecodeString(msg.Txbytes)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(types.MsgSendFromMultiSig{
@@ -70,8 +68,8 @@ func multisignatureSendFn(cdc *wire.Codec, cliCtx context.CLIContext) http.Handl
 			return
 		}
 
-		err = cdc.UnmarshalBinary(data,&Txbytes)
-		if err!=nil{
+		err = cdc.UnmarshalBinary(data, &Txbytes)
+		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(types.MsgSendFromMultiSig{
 				Success: false,
@@ -84,11 +82,10 @@ func multisignatureSendFn(cdc *wire.Codec, cliCtx context.CLIContext) http.Handl
 
 		}
 
+		cliCtx = cliCtx.WithFromAddressName(msg.Name)
+		cliCtx = cliCtx.WithAccountDecoder(authcmd.GetAccountDecoder(cdc))
 
-		cliCtx=cliCtx.WithFromAddressName(msg.Name)
-		cliCtx=cliCtx.WithAccountDecoder(authcmd.GetAccountDecoder(cdc))
-
-		address,err:=cliCtx.GetFromAddress()
+		address, err := cliCtx.GetFromAddress()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(types.MultiSigAddrCreateResponse{
@@ -100,7 +97,7 @@ func multisignatureSendFn(cdc *wire.Codec, cliCtx context.CLIContext) http.Handl
 			})
 			return
 		}
-		account,err := cliCtx.GetAccount(address)
+		account, err := cliCtx.GetAccount(address)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(types.MultiSigAddrCreateResponse{
@@ -113,20 +110,19 @@ func multisignatureSendFn(cdc *wire.Codec, cliCtx context.CLIContext) http.Handl
 			return
 		}
 
-		sequence:=account.GetSequence()
+		sequence := account.GetSequence()
 
-		txcontext:=context2.TxContext{
-			Codec:cdc,
-			ChainID:msg.ChainId,
-			Sequence:sequence,
-			AccountNumber:msg.AccountNumber,
-			Gas:msg.Gas,
+		txcontext := context2.TxContext{
+			Codec:         cdc,
+			ChainID:       msg.ChainId,
+			Sequence:      sequence,
+			AccountNumber: msg.AccountNumber,
+			Gas:           msg.Gas,
 		}
 
+		message := multisig.NewMsgSendFromMultiSig(Txbytes, address)
 
-		message:=multisig.NewMsgSendFromMultiSig(Txbytes,address)
-
-		txbytes,err:=txcontext.BuildAndSign(msg.Name,msg.Password,[]sdk.Msg{message})
+		txbytes, err := txcontext.BuildAndSign(msg.Name, msg.Password, []sdk.Msg{message})
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(types.MultiSigAddrCreateResponse{
@@ -139,7 +135,7 @@ func multisignatureSendFn(cdc *wire.Codec, cliCtx context.CLIContext) http.Handl
 			return
 		}
 
-		res,err:=cliCtx.BroadcastTx(txbytes)
+		res, err := cliCtx.BroadcastTx(txbytes)
 		if err != nil {
 			panic(err)
 			w.WriteHeader(http.StatusInternalServerError)

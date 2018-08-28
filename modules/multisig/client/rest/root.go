@@ -21,6 +21,4 @@ func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router, cdc *wire.Codec) {
 	r.HandleFunc("/multisig/fund", multisignatureFundFn(cdc, cliCtx)).Methods("POST")
 	r.HandleFunc("/multisig/transfer", multisignatureSendFn(cdc, cliCtx)).Methods("POST")
 
-
-
 }

@@ -1,7 +1,9 @@
 package types
+
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
 type Error struct {
 	Code    uint64 `json:"code"`
 	Message string `json:"message"`
@@ -18,7 +20,6 @@ type MsgSpendFromMultiSigResponse struct {
 	Error   Error  `json:"error,omitempty"`
 	Data    []byte `json:"data,omitempty"`
 }
-
 
 type MultiSigAddrCreateResponse struct {
 	Success bool   `json:"success"`
@@ -37,63 +38,64 @@ type MsgSendFromMultiSig struct {
 	Error   Error  `json:"error,omitempty"`
 	Data    []byte `json:"data,omitempty"`
 }
+
 const (
 	DefaultCodespace sdk.CodespaceType = 19
 
-	CodeInvalidSequence sdk.CodeType = 191
-	CodeMarshalInterface          sdk.CodeType=192
-	CodeInvalidAddres           sdk.CodeType=193
-	CodeCreateMultiSig          sdk.CodeType=194
-	CodeDataFromKVStore         sdk.CodeType=195
-	CodeUnMarshal               sdk.CodeType=196
-	CodeInvalidPubKey sdk.CodeType=197
-	CodeInvalidMultiSigAccount   sdk.CodeType=198
-	CodeSigners      sdk.CodeType=199
-	CodeSignatureVerfication  sdk.CodeType=201
-	CodeTxNumber sdk.CodeType=202
-	CodeInsufficientCoins   sdk.CodeType=203
-	CodeUnknownRequest  sdk.CodeType = sdk.CodeUnknownRequest
+	CodeInvalidSequence        sdk.CodeType = 191
+	CodeMarshalInterface       sdk.CodeType = 192
+	CodeInvalidAddres          sdk.CodeType = 193
+	CodeCreateMultiSig         sdk.CodeType = 194
+	CodeDataFromKVStore        sdk.CodeType = 195
+	CodeUnMarshal              sdk.CodeType = 196
+	CodeInvalidPubKey          sdk.CodeType = 197
+	CodeInvalidMultiSigAccount sdk.CodeType = 198
+	CodeSigners                sdk.CodeType = 199
+	CodeSignatureVerfication   sdk.CodeType = 201
+	CodeTxNumber               sdk.CodeType = 202
+	CodeInsufficientCoins      sdk.CodeType = 203
+	CodeUnknownRequest         sdk.CodeType = sdk.CodeUnknownRequest
 )
 
-
 func ErrInvalidSequence(msg string) sdk.Error {
-	return newError(DefaultCodespace, CodeInvalidSequence,msg)
+	return newError(DefaultCodespace, CodeInvalidSequence, msg)
 }
 
 func ErrMarshal(msg string) sdk.Error {
-	return newError(DefaultCodespace, CodeMarshalInterface,msg)
+	return newError(DefaultCodespace, CodeMarshalInterface, msg)
 }
 func ErrInvalidAddres(msg string) sdk.Error {
-	return newError(DefaultCodespace, CodeInvalidAddres,msg)
+	return newError(DefaultCodespace, CodeInvalidAddres, msg)
 }
 func ErrCreateMultiSig(msg string) sdk.Error {
-	return newError(DefaultCodespace, CodeCreateMultiSig,msg)
+	return newError(DefaultCodespace, CodeCreateMultiSig, msg)
 }
 func ErrDataFromKVStore(msg string) sdk.Error {
-	return newError(DefaultCodespace, CodeDataFromKVStore,msg)
+	return newError(DefaultCodespace, CodeDataFromKVStore, msg)
 }
 func ErrUnMarshal(msg string) sdk.Error {
-	return newError(DefaultCodespace, CodeUnMarshal,msg)
+	return newError(DefaultCodespace, CodeUnMarshal, msg)
 }
 
 func ErrInvalidPubKey(msg string) sdk.Error {
-	return newError(DefaultCodespace, CodeInvalidPubKey,msg)
+	return newError(DefaultCodespace, CodeInvalidPubKey, msg)
 }
 func ErrInvalidMultiSigAccount(msg string) sdk.Error {
-	return newError(DefaultCodespace, CodeInvalidMultiSigAccount,msg)
+	return newError(DefaultCodespace, CodeInvalidMultiSigAccount, msg)
 }
 func ErrSigners(msg string) sdk.Error {
-	return newError(DefaultCodespace, CodeSigners,msg)
+	return newError(DefaultCodespace, CodeSigners, msg)
 }
 func ErrSignatureVerfication(msg string) sdk.Error {
-	return newError(DefaultCodespace, CodeSignatureVerfication,msg)
+	return newError(DefaultCodespace, CodeSignatureVerfication, msg)
 }
 func ErrTxNumber(msg string) sdk.Error {
-	return newError(DefaultCodespace, CodeTxNumber,msg)
+	return newError(DefaultCodespace, CodeTxNumber, msg)
 }
 func ErrInsufficientCoins(msg string) sdk.Error {
-	return newError(DefaultCodespace, CodeInsufficientCoins,msg)
+	return newError(DefaultCodespace, CodeInsufficientCoins, msg)
 }
+
 //
 // -------------------------
 // Helpers

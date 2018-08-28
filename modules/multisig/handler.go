@@ -17,7 +17,6 @@ func NewHandler(k Keeper) types.Handler {
 			errMsg := "Unrecognized gov msg type"
 			return types.ErrUnknownRequest(errMsg).Result()
 
-
 		}
 	}
 }
@@ -27,11 +26,10 @@ func handleMsgCreateMultiSigAddress(ctx types.Context, keeper Keeper, msg MsgCre
 	if err != nil {
 		return err.Result()
 	}
-	//d, _ := keeper.cdc.MarshalJSON(msg)
-	tag:=types.NewTags("multisig adddress",[]byte(address.String()))
+	tag := types.NewTags("multisig adddress", []byte(address.String()))
 	return types.Result{
 		Data: address,
-		Tags:tag,
+		Tags: tag,
 	}
 }
 
@@ -40,11 +38,10 @@ func handleMsgFundMultiSig(ctx types.Context, keeper Keeper, msg MsgFundMultiSig
 	if err != nil {
 		return err.Result()
 	}
-	//d, _ := keeper.cdc.MarshalJSON(msg)
-	tag:=types.NewTags("multisig adddress",[]byte(address.String()))
+	tag := types.NewTags("multisig adddress", []byte(address.String()))
 	return types.Result{
 		Data: address,
-		Tags:tag,
+		Tags: tag,
 	}
 }
 func handleMsgSendFromMultiSig(ctx types.Context, keeper Keeper, msg MsgSendFromMultiSig) types.Result {
@@ -52,10 +49,9 @@ func handleMsgSendFromMultiSig(ctx types.Context, keeper Keeper, msg MsgSendFrom
 	if err != nil {
 		return err.Result()
 	}
-	//d, _ := keeper.cdc.MarshalJSON(msg)
-	tag:=types.NewTags("multisig adddress",[]byte(msg.Txbytes.MultiSigAddress.String())).AppendTag("reciver address",[]byte(address.String()))
+	tag := types.NewTags("multisig adddress", []byte(msg.Txbytes.MultiSigAddress.String())).AppendTag("reciver address", []byte(address.String()))
 	return types.Result{
 		Data: address,
-		Tags:tag,
+		Tags: tag,
 	}
 }

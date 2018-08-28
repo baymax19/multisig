@@ -6,23 +6,24 @@ import (
 	"encoding/json"
 	sdk "sentinel/modules/multisig/types"
 
+	"encoding/base64"
+	stypes "sentinel/modules/multisig/types"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	ckeys "github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/crypto/keys"
-	"github.com/cosmos/cosmos-sdk/wire"
-	stypes "sentinel/modules/multisig/types"
 	"github.com/cosmos/cosmos-sdk/types"
-	"encoding/base64"
+	"github.com/cosmos/cosmos-sdk/wire"
 )
 
 type MsgSpendFromMultiSig struct {
-	Spend    string `json:"spend"`
-	To       string     `json:"to"`
+	Spend           string `json:"spend"`
+	To              string `json:"to"`
 	MultiSigAddress string `json:"multi_sig_address"`
-	From     string     `json:"from"`
-	Amount   string     `json:"amount"`
-	Password string     `json:"password"`
-	TxNumber *int64    `json:"tx_number"`
+	From            string `json:"from"`
+	Amount          string `json:"amount"`
+	Password        string `json:"password"`
+	TxNumber        *int64 `json:"tx_number"`
 }
 
 func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) http.HandlerFunc {
@@ -59,9 +60,9 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 		}
 
 		//check the  existing txbytes
-		if (msg.Spend=="") {
+		if msg.Spend == "" {
 
-			if(msg.Amount==""){
+			if msg.Amount == "" {
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
 					Success: false,
@@ -73,7 +74,7 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 				return
 			}
 
-			if(msg.To==""){
+			if msg.To == "" {
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
 					Success: false,
@@ -85,7 +86,7 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 				return
 			}
 
-			if(msg.MultiSigAddress==""){
+			if msg.MultiSigAddress == "" {
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
 					Success: false,
@@ -97,7 +98,7 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 				return
 			}
 
-			if(*msg.TxNumber<1){
+			if *msg.TxNumber < 1 {
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
 					Success: false,
@@ -110,7 +111,7 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 
 			}
 
-			if(msg.To==msg.MultiSigAddress){
+			if msg.To == msg.MultiSigAddress {
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
 					Success: false,
@@ -123,8 +124,7 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 
 			}
 
-
-			to,err:=types.AccAddressFromBech32(msg.To)
+			to, err := types.AccAddressFromBech32(msg.To)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
@@ -137,7 +137,7 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 				return
 			}
 
-			maddress,err:=types.AccAddressFromBech32(msg.MultiSigAddress)
+			maddress, err := types.AccAddressFromBech32(msg.MultiSigAddress)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
@@ -150,7 +150,7 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 				return
 			}
 
-			coins,err:=types.ParseCoins(msg.Amount)
+			coins, err := types.ParseCoins(msg.Amount)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
@@ -163,7 +163,7 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 				return
 			}
 
-			bz, err := stypes.MsgSpendSignBytes(to,coins,maddress)
+			bz, err := stypes.MsgSpendSignBytes(to, coins, maddress)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
@@ -189,14 +189,14 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 			}
 
 			Txbytes = stypes.StdtxSpend{
-				To:     to,
-				MultiSigAddress:maddress,
-				Amount: coins,
-				Signature: append(Txbytes.Signature, signature),
-				TxNumber:*msg.TxNumber,
+				To:              to,
+				MultiSigAddress: maddress,
+				Amount:          coins,
+				Signature:       append(Txbytes.Signature, signature),
+				TxNumber:        *msg.TxNumber,
 			}
 
-			data,err:=cdc.MarshalBinary(Txbytes)
+			data, err := cdc.MarshalBinary(Txbytes)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
@@ -214,8 +214,8 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 			w.Write([]byte(result))
 			return
 
-			}
-		if(msg.Amount!="" || msg.MultiSigAddress!=""|| msg.TxNumber!=nil){
+		}
+		if msg.Amount != "" || msg.MultiSigAddress != "" || msg.TxNumber != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
 				Success: false,
@@ -227,7 +227,7 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 			return
 
 		}
-		data,err:=base64.StdEncoding.DecodeString(msg.Spend)
+		data, err := base64.StdEncoding.DecodeString(msg.Spend)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
@@ -240,8 +240,8 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 			return
 		}
 
-		err=cdc.UnmarshalBinary(data,&Txbytes)
-		if err!=nil{
+		err = cdc.UnmarshalBinary(data, &Txbytes)
+		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
 				Success: false,
@@ -253,9 +253,8 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 			return
 		}
 
-
-		bz, err := stypes.MsgSpendSignBytes(Txbytes.To, Txbytes.Amount,Txbytes.MultiSigAddress)
-		if err!=nil{
+		bz, err := stypes.MsgSpendSignBytes(Txbytes.To, Txbytes.Amount, Txbytes.MultiSigAddress)
+		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
 				Success: false,
@@ -266,7 +265,6 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 			})
 			return
 		}
-
 
 		signature, _, err := kb.Sign(msg.From, msg.Password, bz)
 		if err != nil {
@@ -281,8 +279,8 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 			return
 		}
 
-		for _,value :=range Txbytes.Signature{
-			if string(value)==string(signature){
+		for _, value := range Txbytes.Signature {
+			if string(value) == string(signature) {
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
 					Success: false,
@@ -296,10 +294,10 @@ func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) ht
 			}
 		}
 
-	    Txbytes.Signature= append(Txbytes.Signature, signature)
-		output := stypes.NewStdtxSpend(Txbytes.To, Txbytes.MultiSigAddress,Txbytes.Amount, Txbytes.Signature,Txbytes.TxNumber)
+		Txbytes.Signature = append(Txbytes.Signature, signature)
+		output := stypes.NewStdtxSpend(Txbytes.To, Txbytes.MultiSigAddress, Txbytes.Amount, Txbytes.Signature, Txbytes.TxNumber)
 
-		data,err =cdc.MarshalBinary(output)
+		data, err = cdc.MarshalBinary(output)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{

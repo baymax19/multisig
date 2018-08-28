@@ -37,13 +37,13 @@ type StdtxSpend struct {
 	TxNumber        int64            `json:"tx_number"`
 }
 
-func NewStdtxSpend(to types.AccAddress, maddress types.AccAddress,amount types.Coins, sign [][]byte, tx_number int64) StdtxSpend {
+func NewStdtxSpend(to types.AccAddress, maddress types.AccAddress, amount types.Coins, sign [][]byte, tx_number int64) StdtxSpend {
 	data := StdtxSpend{
-		To:        to,
-		MultiSigAddress:maddress,
-		Amount:    amount,
-		Signature: sign,
-		TxNumber:  tx_number,
+		To:              to,
+		MultiSigAddress: maddress,
+		Amount:          amount,
+		Signature:       sign,
+		TxNumber:        tx_number,
 	}
 	return data
 }
@@ -91,16 +91,16 @@ func CreateSignBytes(minkey uint8, order bool, totalkeys uint8) ([]byte, error) 
 
 //For sign the Spend txn
 type SendTxBody struct {
-	To     types.AccAddress
-	Amount types.Coins
+	To              types.AccAddress
+	Amount          types.Coins
 	MultiSigAddress types.AccAddress
 }
 
-func MsgSpendSignBytes(to types.AccAddress, amount types.Coins,maddress types.AccAddress) ([]byte, error) {
+func MsgSpendSignBytes(to types.AccAddress, amount types.Coins, maddress types.AccAddress) ([]byte, error) {
 	bz, err := json.Marshal(SendTxBody{
-		To:     to,
-		Amount: amount,
-		MultiSigAddress :maddress,
+		To:              to,
+		Amount:          amount,
+		MultiSigAddress: maddress,
 	})
 
 	if err != nil {
