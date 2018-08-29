@@ -15,10 +15,10 @@ func init() {
 }
 
 func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router, cdc *wire.Codec) {
-	r.HandleFunc("/multisig", multisignatureCreateSignHandlerFn(cdc, cliCtx)).Methods("POST")
-	r.HandleFunc("/multisig/spend", multisignatureSpendHandlerFn(cdc, cliCtx)).Methods("POST")
-	r.HandleFunc("/multisig/create", multisignatureCreateAddressFn(cdc, cliCtx)).Methods("POST")
-	r.HandleFunc("/multisig/fund", multisignatureFundFn(cdc, cliCtx)).Methods("POST")
-	r.HandleFunc("/multisig/transfer", multisignatureSendFn(cdc, cliCtx)).Methods("POST")
+	r.HandleFunc("/initiate", initiateWalletHandlerFn(cdc, cliCtx)).Methods("POST")   // to initiate txns to generate addr
+	r.HandleFunc("/create", createWalletAddressHandleFn(cdc, cliCtx)).Methods("POST") //to get wallet address
+	r.HandleFunc("/initiate_txn", initiateTxnHandlerFn(cdc, cliCtx)).Methods("POST")  // to sign the transaction in offchain
+	r.HandleFunc("/send", sendHandleFn(cdc, cliCtx)).Methods("POST")                  // to send money to wallet
+	r.HandleFunc("/transfer", transferHandleFn(cdc, cliCtx)).Methods("POST")
 
 }

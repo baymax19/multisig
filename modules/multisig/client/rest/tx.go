@@ -26,7 +26,31 @@ type MultiSignature struct {
 	Password  string `json:"password"`
 }
 
-func multisignatureCreateSignHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) http.HandlerFunc {
+/**
+* @api {post} /initiate To initiate transaction for Multisig wallet.
+* @apiName initiate Multisig wallet
+* @apiGroup MultisigWallet
+* @apiParam {String} txbytes Transaction bytes to initiate transaction for wallet, by default its empty at first initiation.
+* @apiParam {Number} min_keys Number of minimum signatures required.
+* @apiParam {Number} total_keys Number of total signatures including.
+* @apiParam {Boolean} order Order of signatures required or not.
+* @apiParam {String} name Name of Account.
+* @apiParam {String} password Password for account.
+* @apiError AccountAlreadyExists AccountName is  already exists
+* @apiErrorExample AccountAlreadyExists-Response:
+* {
+*   Account with name XXXXX... already exists.
+* }
+* @apiSuccessExample Response:
+*{
+*  vgEIBBAEGAEibFkyOXpiVzl6WVdOamNIVmlNV0ZrWkhkdWNHVndjWFJsTldVeWNqVmhkbmgwTWpaa2NUbDVjWEowZERSeE9UQ
+*  jVZMlprYURoeGN6TXpaWFI2TldabmQzRnhkRE0xZUhCMFozYzRibVl6Y0dzPSgCMkYwRAIgSntwx54iNoDqHyYSgRdxyei2n
+*  EkhPs3oSWVWIcSrjgCICzsjgzA6pYMKR/w1jxJ+IUNrPasDwpMEtNi2bMdaNH2
+*
+*}
+ */
+
+func initiateWalletHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var msg MultiSignature
 		var kb keys.Keybase
@@ -94,7 +118,7 @@ func multisignatureCreateSignHandlerFn(cdc *wire.Codec, cliCtx context.CLIContex
 					Success: false,
 					Error: sdk.Error{
 						1,
-						"min keys are grater than total keys or  max keys greaterthan upper bond 10	",
+						"min keys sould be less than total keys or  max keys should not grater than 10	",
 					},
 				})
 				return

@@ -190,7 +190,6 @@ func (k Keeper) SendFromMultiSig(ctx types.Context, msg MsgSendFromMultiSig) (ty
 	}
 
 	txbytes.Counter++
-
 	bz, err := json.Marshal(txbytes)
 	if err != nil {
 		return nil, mtypes.ErrMarshal("marshal bytes failed")

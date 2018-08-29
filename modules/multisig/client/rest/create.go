@@ -23,7 +23,46 @@ type MultiSigAddrCreate struct {
 	Gas           int64  `json:"gas"`
 }
 
-func multisignatureCreateAddressFn(cdc *wire.Codec, cliCtx context.CLIContext) http.HandlerFunc {
+/**
+* @api {post} /create To create Multisig wallet.
+* @apiName Create Multisig wallet
+* @apiGroup MultisigWallet
+* @apiParam {String} txbytes Transaction bytes to initiate transaction for wallet, by default its empty at first initiation.
+* @apiParam {String} name Name of Account.
+* @apiParam {String} password Password for account.
+* @apiParam {String} chain_id Chain Id.
+* @apiParam {Number} account_number Account number.
+* @apiParam {number} gas Gas value.
+* @apiError AccountAlreadyExists AccountName is  already exists
+* @apiErrorExample AccountAlreadyExists-Response:
+* {
+*   Account with name XXXXX... already exists.
+* }
+* @apiSuccessExample Response:
+*{
+*  "check_tx": {
+*    "log": "Msg 0: ",
+*    "gasWanted": "21000",
+*    "gasUsed": "1209"
+*  },
+*  "deliver_tx": {
+*    "data": "IGpXqASE+6AvgVVRO3NyNtCzqH4=",
+*    "log": "Msg 0: ",
+*    "gasWanted": "21000",
+*    "gasUsed": "6670",
+*    "tags": [
+*      {
+*        "key": "bXVsdGlzaWcgYWRkZHJlc3M=",
+*        "value": "Y29zbW9zYWNjYWRkcjF5cDQ5MDJxeXNuYTZxdHVwMjRnbmt1bWp4bWd0ODJyN2g1a3V2Yw=="
+*      }
+*    ]
+*  },
+*  "hash": "CC78A0E5445A2EE945308F3A599EF96BD529A9AF",
+*  "height": "14863"
+*}
+ */
+
+func createWalletAddressHandleFn(cdc *wire.Codec, cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var msg MultiSigAddrCreate
 		var err error
@@ -66,8 +105,8 @@ func multisignatureCreateAddressFn(cdc *wire.Codec, cliCtx context.CLIContext) h
 			return
 		}
 
-		err=cdc.UnmarshalBinary(data, &Txbytes)
-		if err!=nil{
+		err = cdc.UnmarshalBinary(data, &Txbytes)
+		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(sdk.MultiSignatureResponse{
 				Success: false,

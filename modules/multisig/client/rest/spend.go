@@ -17,16 +17,39 @@ import (
 )
 
 type MsgSpendFromMultiSig struct {
-	Spend           string `json:"spend"`
+	Spend           string `json:"txbytes"`
 	To              string `json:"to"`
-	MultiSigAddress string `json:"multi_sig_address"`
-	From            string `json:"from"`
+	MultiSigAddress string `json:"multisig_address"`
+	From            string `json:"name"`
 	Amount          string `json:"amount"`
 	Password        string `json:"password"`
 	TxNumber        *int64 `json:"tx_number"`
 }
 
-func multisignatureSpendHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) http.HandlerFunc {
+/**
+* @api {post} /initiate_txn To initiate transaction for sending Tokens from Multisig wallet.
+* @apiName initiate transaction of Multisig wallet
+* @apiGroup MultisigWallet
+* @apiParam {String} txbytes Transaction bytes to initiate transaction for wallet, by default its empty at first initiation.
+* @apiParam {String} to To address.
+* @apiParam {String} multisig_address Address of the multisignature wallet.
+* @apiParam {String} name Name of Account.
+* @apiParam {String} password Password for account.
+* @apiParam {Number} tx_number Transaction number of the multisig wallet.
+* @apiError AccountAlreadyExists AccountName is  already exists
+* @apiErrorExample AccountAlreadyExists-Response:
+* {
+*   Account with name XXXXX... already exists.
+* }
+* @apiSuccessExample Response:
+*{
+*  vgEIBBAEGAEibFkyOXpiVzl6WVdOamNIVmlNV0ZrWkhkdWNHVndjWFJsTldVeWNqVmhkbmgwTWpaa2NUbDVjWEowZERSeE9UQ
+*  jVZMlprYURoeGN6TXpaWFI2TldabmQzRnhkRE0xZUhCMFozYzRibVl6Y0dzPSgCMkYwRAIgSntwx54iNoDqHyYSgRdxyei2n/
+*  EkhPs3oSWVWIcSrjgCICzsjgzA6pYMKR/w1jxJ+IUNrPasDwpMEtNi2bMdaNH2
+*}
+ */
+
+func initiateTxnHandlerFn(cdc *wire.Codec, cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var msg MsgSpendFromMultiSig
 		var kb keys.Keybase
