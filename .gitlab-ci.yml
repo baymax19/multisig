@@ -1,15 +1,14 @@
-image : golang:1.9
-
-before_script:
-  - go get github.com/golang/dep/cmd/dep
-  - go get github.com/cosmos/comos-sdk
-  - dep ensure
-  - make all
-
 stages:
   -build
 
-go_build:
+build:
   stage: build
-  script: 
-    - make build
+  image: golang:1.11
+  before_script:
+    - cd $GOPATH/src
+    - mkdir -p gitlab.com/$CI_PROJECT_NAMESPACE
+    - cd gitlab.com/$CI_PROJECT_NAMESPACE
+    - ln -s $CI_PROJECT_DIR
+    - cd $CI_PROJECT_NAME
+  script:
+    - make all

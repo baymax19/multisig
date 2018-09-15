@@ -1,6 +1,6 @@
 PACKAGES=$(shell go list ./... | grep -v '/vendor/')
 
-all: get_tools get_vendor_deps build test
+all: get_tools get_vendor_deps build
 
 get_tools:
 	go get github.com/golang/dep/cmd/dep
