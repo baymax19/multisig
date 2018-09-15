@@ -1,0 +1,15 @@
+image : golang:1.9
+
+before_script:
+  - go get github.com/golang/dep/cmd/dep
+  - go get github.com/cosmos/comos-sdk
+  - dep ensure
+  - make all
+
+stages:
+  -build
+
+go_build:
+  stage: build
+  script: 
+    - make build
