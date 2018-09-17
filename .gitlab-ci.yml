@@ -23,5 +23,8 @@ build:
     - ln -s $CI_PROJECT_DIR
     - cd $CI_PROJECT_NAME
     - echo $GOBIN,$GOPATH
+    - export GOPATH=$HOME/go
+    - export GOBIN=$GOPATH/bin
+    - export PATH=$PATH:$GOBIN:$GOPATH
   script:
     - make all
