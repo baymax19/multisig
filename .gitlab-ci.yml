@@ -9,13 +9,12 @@ build:
      - vendor/
   before_script:
     - cd $GOPATH/src
-#    - go get github.com/tools/godep
 #    - mkdir -p gitlab.com/$CI_PROJECT_NAMESPACE
 #    - cd gitlab.com/$CI_PROJECT_NAMESPACE
     - mkdir -p sentinel
     - ln -s /builds/baymax19/multisig $GOPATH/src
     - cd $GOPATH/src/multisig
-#    - dep init && dep ensure
+    - dep ensure
     - echo $GOBIN,$GOPATH
   script:
     - make all
