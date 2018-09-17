@@ -16,6 +16,6 @@ build:
     - ln -s /builds/baymax19/multisig $GOPATH/src
     - cd $GOPATH/src/multisig
 #    - dep init && dep ensure
-    - echo $GOBIN
+    - echo $GOBIN,$GOPATH
   script:
     - make all
