@@ -13,6 +13,7 @@ build:
     - export PATH=$PATH:$GOBIN:$GOPATH
     - echo $PATH
     - echo $GOBIN,$GOPATH
+    - mkdir -p $GOPATH/src
     - cd $GOPATH/src
     - ln -s /builds/baymax19/multisig $GOPATH/src
     - cd $GOPATH/src/multisig
