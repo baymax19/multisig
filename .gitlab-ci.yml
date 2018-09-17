@@ -5,32 +5,15 @@ build:
   stage: build
   image: golang:1.10
   before_script:
-#    - mkdir -p gitlab.com/$CI_PROJECT_NAMESPACE
-#    - cd gitlab.com/$CI_PROJECT_NAMESPACE
-#    - mkdir -p sentinel
-    - export GOPATH=/home/baymax19/go
+    - export GOPATH=$HOME/go
     - export GOBIN=$GOPATH/bin
-    - export PATH=$PATH:$GOBIN:$GOPATH
+    - export PATH=$PATH:$GOBIN
     - echo $PATH
-    - echo $GOBIN,$GOPATH
     - mkdir -p $GOPATH/src
-    - go get -d -u github.com/golang/dep
-    - cd $(go env GOPATH)/src/github.com/golang/dep
-    - DEP_LATEST=$(git describe --abbrev=0 --tags)
-    - git checkout $DEP_LATEST
-    - go install -ldflags="-X main.version=$DEP_LATEST" ./cmd/dep
-    - git checkout master
-    - cd $GOPATH/src
-    - ln -s /builds/baymax19/multisig $GOPATH/src
-    - cd $GOPATH/src/multisig
-
+    - go get -u github.com/golang/dep
     - which dep
-#    - cd $GOPATH/src
-#    - mkdir -p gitlab.com/$CI_PROJECT_NAMESPACE
-#    - cd gitlab.com/$CI_PROJECT_NAMESPACE
-#    - ln -s $CI_PROJECT_DIR
-#    - cd $CI_PROJECT_NAME
+    - ln -s /builds/baymax19/multisig/sentinel $GOPATH/src
+    - cd $GOPATH/src/multisig/sentinel
 
   script:
-    - dep init && dep ensure
     - make all

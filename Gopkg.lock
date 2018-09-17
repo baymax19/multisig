@@ -48,7 +48,7 @@
   revision = "d4cc87b860166d00d6b5b9e0d3b3d71d6088d4d4"
 
 [[projects]]
-  digest = "1:9f6f3d570729a13f270db6fb4549d825d3b1f23191967476e6c89c993aeead99"
+  digest = "1:8e4334d3035d7940ed5f7ca29f29fa099b1b2740d9b4f98937d7fdb3f148fa1a"
   name = "github.com/cosmos/cosmos-sdk"
   packages = [
     "baseapp",
@@ -81,8 +81,8 @@
     "x/ibc/client/cli",
   ]
   pruneopts = "UT"
-  revision = "1c38c70468ec721e3a555ba2f3bf5f9da31f0cc9"
-  version = "v0.24.2"
+  revision = "2c6ed0fefc499410a7734ac93005f32a99b47b5b"
+  version = "v0.24.1"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -108,7 +108,7 @@
   version = "v1.4.7"
 
 [[projects]]
-  digest = "1:a6910e76d4a4aad1481edf7efb7831bd0aae11dddf2f21e5c3f1fe8c7046d3bd"
+  digest = "1:fdf5169073fb0ad6dc12a70c249145e30f4058647bea25f0abd48b6d9f228a11"
   name = "github.com/go-kit/kit"
   packages = [
     "log",
@@ -120,8 +120,8 @@
     "metrics/prometheus",
   ]
   pruneopts = "UT"
-  revision = "ca4112baa34cb55091301bdc13b1420a122b1b9e"
-  version = "v0.7.0"
+  revision = "4dc7be5d2d12881735283bcab7352178e190fc71"
+  version = "v0.6.0"
 
 [[projects]]
   digest = "1:31a18dae27a29aa074515e43a443abfd2ba6deb6d69309d8d7ce789c45f34659"
@@ -201,13 +201,12 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:c0d19ab64b32ce9fe5cf4ddceba78d5bc9807f0016db6b1183599da3dcc24d10"
+  digest = "1:ea40c24cdbacd054a6ae9de03e62c5f252479b96c716375aace5c120d68647c8"
   name = "github.com/hashicorp/hcl"
   packages = [
     ".",
     "hcl/ast",
     "hcl/parser",
-    "hcl/printer",
     "hcl/scanner",
     "hcl/strconv",
     "hcl/token",
@@ -369,12 +368,12 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
+  digest = "1:7ffc0983035bc7e297da3688d9fe19d60a420e9c38bef23f845c53788ed6a05e"
   name = "github.com/spf13/cobra"
   packages = ["."]
   pruneopts = "UT"
-  revision = "ef82de70bb3f60c65fb8eebacbb2d122ef517385"
-  version = "v0.0.3"
+  revision = "7b2c5ac9fc04fc5efafb60700713d4fa609b777b"
+  version = "v0.0.1"
 
 [[projects]]
   digest = "1:68ea4e23713989dc20b1bded5d9da2c5f9be14ff9885beef481848edd18c26cb"
@@ -393,12 +392,12 @@
   version = "v1.0.2"
 
 [[projects]]
-  digest = "1:59e7dceb53b4a1e57eb1eb0bf9951ff0c25912df7660004a789b62b4e8cdca3b"
+  digest = "1:f8e1a678a2571e265f4bf91a3e5e32aa6b1474a55cb0ea849750cc177b664d96"
   name = "github.com/spf13/viper"
   packages = ["."]
   pruneopts = "UT"
-  revision = "b5e8006cbee93ec955a89ab31e0e3ce3204f3736"
-  version = "v1.0.2"
+  revision = "25b30aa063fc18e48662b86996252eabdcf2f0c7"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:7e8d267900c7fa7f35129a2a37596e38ed0f11ca746d6d9ba727980ee138f9f6"
@@ -445,31 +444,23 @@
   revision = "d8387025d2b9d158cf4efb07e7ebf814bcce2057"
 
 [[projects]]
-  digest = "1:21521550d7ff880eea34405a59287f6be365077b125dc8b5c371f0a4f486ee88"
+  digest = "1:e9113641c839c21d8eaeb2c907c7276af1eddeed988df8322168c56b7e06e0e1"
   name = "github.com/tendermint/go-amino"
   packages = ["."]
   pruneopts = "UT"
-  revision = "756cfbe0ef0daff7ad0a82dac8b35891a212aafa"
-  version = "v0.11.1"
+  revision = "2106ca61d91029c931fd54968c2bb02dc96b1412"
+  version = "0.10.1"
 
 [[projects]]
-  digest = "1:5ad5ba36bfe2d0c6fd39d102dc164f1eb2411f23a25c459c5f18dc8bdcb4a5bc"
-  name = "github.com/tendermint/go-wire"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "b6fc872b42d41158a60307db4da051dd6f179415"
-  version = "v0.7.2"
-
-[[projects]]
-  digest = "1:cf26b8a19978fffa524c9b9a6ddab027268831b49c6ca1c700b61b378d1d36b5"
+  digest = "1:d4a15d404afbf591e8be16fcda7f5ac87948d5c7531f9d909fd84cc730ab16e2"
   name = "github.com/tendermint/iavl"
   packages = ["."]
   pruneopts = "UT"
-  revision = "fd37a0fa3a7454423233bc3d5ea828f38e0af787"
-  version = "v0.7.0"
+  revision = "35f66e53d9b01e83b30de68b931f54b2477a94c9"
+  version = "v0.9.2"
 
 [[projects]]
-  digest = "1:c2af9783c757a6f3b92615dc7513324d1d61d2dedf72348161704649818b443e"
+  digest = "1:26146cdb2811ce481e72138439b9b1aa17a64d54364f96bb92f97a9ef8ba4f01"
   name = "github.com/tendermint/tendermint"
   packages = [
     "abci/client",
@@ -532,20 +523,8 @@
     "version",
   ]
   pruneopts = "UT"
-  revision = "05a76fb517f50da27b4bfcdc7b4cf185fc61eff6"
-  version = "v0.22.5"
-
-[[projects]]
-  branch = "develop"
-  digest = "1:5ae60726790a2c2ca4818ed1c69e4155d0f539b5cfe2f78c2ad3750fb12fc12a"
-  name = "github.com/tendermint/tmlibs"
-  packages = [
-    "common",
-    "db",
-    "log",
-  ]
-  pruneopts = "UT"
-  revision = "c858b3ba78316fdd9096a11409a7e7a493e7d974"
+  revision = "013b9cef642f875634c614019ab13b17570778ad"
+  version = "v0.23.0"
 
 [[projects]]
   digest = "1:4dcb0dd65feecb068ce23a234d1a07c7868a1e39f52a6defcae0bb371d03abf6"
@@ -556,11 +535,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:65a21a9e051d54eb6a3f70c659a765f706a998d9287c302269f4ed8054b2a852"
+  digest = "1:27507554c6d4f060d8d700c31c624a43d3a92baa634e178ddc044bdf7d13b44a"
   name = "golang.org/x/crypto"
   packages = [
     "blowfish",
+    "chacha20poly1305",
     "curve25519",
+    "hkdf",
+    "internal/chacha20",
     "internal/subtle",
     "nacl/box",
     "nacl/secretbox",
@@ -592,9 +574,12 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:6eb2645d74b43d9c87b51947df39f7c668a4f422cd512053f7f6f75bfaad0197"
+  digest = "1:711af68777cecdb46e65dc72c0878c47872c1d39c12a198ded31d36a783a9aff"
   name = "golang.org/x/sys"
-  packages = ["unix"]
+  packages = [
+    "cpu",
+    "unix",
+  ]
   pruneopts = "UT"
   revision = "d0be0721c37eeb5299f245a996a483160fc36940"
 

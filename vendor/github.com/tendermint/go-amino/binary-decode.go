@@ -483,7 +483,7 @@ func (cdc *Codec) decodeReflectBinaryArray(bz []byte, info *TypeInfo, rv reflect
 			// Special case if next ByteLength bytes are 0x00, set nil.
 			if len(bz) > 0 && bz[0] == 0x00 {
 				slide(&bz, &n, 1)
-				erv.Set(defaultValue(erv.Type()))
+				erv.Set(reflect.Zero(erv.Type()))
 				continue
 			}
 			// Normal case, read next non-nil element from bz.
@@ -639,7 +639,7 @@ func (cdc *Codec) decodeReflectBinarySlice(bz []byte, info *TypeInfo, rv reflect
 			// Special case if next ByteLength bytes are 0x00, set nil.
 			if len(bz) > 0 && bz[0] == 0x00 {
 				slide(&bz, &n, 1)
-				erv.Set(defaultValue(erv.Type()))
+				erv.Set(reflect.Zero(erv.Type()))
 				srv = reflect.Append(srv, erv)
 				continue
 			}
@@ -703,6 +703,7 @@ func (cdc *Codec) decodeReflectBinaryStruct(bz []byte, info *TypeInfo, rv reflec
 		var lastFieldNum uint32
 		// Read each field.
 		for _, field := range info.Fields {
+
 			// Get field rv and info.
 			var frv = rv.Field(field.Index)
 			var finfo *TypeInfo
@@ -713,7 +714,7 @@ func (cdc *Codec) decodeReflectBinaryStruct(bz []byte, info *TypeInfo, rv reflec
 
 			// We're done if we've consumed all the bytes.
 			if len(bz) == 0 {
-				frv.Set(defaultValue(frv.Type()))
+				frv.Set(reflect.Zero(frv.Type()))
 				continue
 			}
 
@@ -730,7 +731,7 @@ func (cdc *Codec) decodeReflectBinaryStruct(bz []byte, info *TypeInfo, rv reflec
 				fnum, typ, _n, err = decodeFieldNumberAndTyp3(bz)
 				if field.BinFieldNum < fnum {
 					// Set zero field value.
-					frv.Set(defaultValue(frv.Type()))
+					frv.Set(reflect.Zero(frv.Type()))
 					continue
 					// Do not slide, we will read it again.
 				}
@@ -759,6 +760,7 @@ func (cdc *Codec) decodeReflectBinaryStruct(bz []byte, info *TypeInfo, rv reflec
 						typWanted, fnum, info.Type, typ))
 					return
 				}
+
 				// Decode field into frv.
 				_n, err = cdc.decodeReflectBinary(bz, finfo, frv, field.FieldOptions, false)
 				if slide(&bz, &n, _n) && err != nil {

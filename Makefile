@@ -10,7 +10,6 @@ build:
 
 get_vendor_deps:
 	@rm -rf vendor/
-	@dep init
 	@dep ensure
 
 test:
