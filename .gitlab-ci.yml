@@ -6,7 +6,9 @@ build:
   image: golang:1.10
   cache:
     paths:
-     - vendor/
+     - /go/src/github.com
+     - /go/src/gopkg.in
+     - /go/src/golang.org
   before_script:
 #    - cd $GOPATH/src
 #    - mkdir -p gitlab.com/$CI_PROJECT_NAMESPACE
@@ -20,7 +22,6 @@ build:
     - cd gitlab.com/$CI_PROJECT_NAMESPACE
     - ln -s $CI_PROJECT_DIR
     - cd $CI_PROJECT_NAME
-    - dep ensure -vendor-only
     - echo $GOBIN,$GOPATH
   script:
     - make all
