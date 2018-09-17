@@ -12,7 +12,7 @@ build:
 #    - mkdir -p gitlab.com/$CI_PROJECT_NAMESPACE
 #    - cd gitlab.com/$CI_PROJECT_NAMESPACE
     - ln -s /builds/baymax19/multisig $GOPATH/src/sentinel
-    - cd $GOPATH/src/sentinel/multisig
+    - cd $GOPATH/src/sentinel
     - dep init && dep ensure
   script:
     - make all
