@@ -14,7 +14,7 @@ build:
     - mkdir -p sentinel
     - ln -s /builds/baymax19/multisig $GOPATH/src
     - cd $GOPATH/src/multisig
-    - dep ensure
+#    - dep ensure
     - echo $GOBIN,$GOPATH
   script:
     - make all
