@@ -23,7 +23,7 @@ build:
     - cd $GOPATH/src
     - ln -s /builds/baymax19/multisig $GOPATH/src
     - cd $GOPATH/src/multisig
-    - dep init && dep ensure
+
     - which dep
 #    - cd $GOPATH/src
 #    - mkdir -p gitlab.com/$CI_PROJECT_NAMESPACE
@@ -32,4 +32,5 @@ build:
 #    - cd $CI_PROJECT_NAME
 
   script:
+    - dep init && dep ensure
     - make all
