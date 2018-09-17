@@ -26,7 +26,7 @@ type NodeGreeting struct {
 
 type SignedNodeGreeting struct {
 	NodeGreeting
-	Signature []byte
+	Signature crypto.Signature
 }
 
 func (pnid *PrivNodeID) SignGreeting() *SignedNodeGreeting {

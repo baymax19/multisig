@@ -6,7 +6,7 @@ import (
 
 type PrivKey interface {
 	Bytes() []byte
-	Sign(msg []byte) ([]byte, error)
+	Sign(msg []byte) (Signature, error)
 	PubKey() PubKey
 	Equals(PrivKey) bool
 }
@@ -19,8 +19,14 @@ type Address = cmn.HexBytes
 type PubKey interface {
 	Address() Address
 	Bytes() []byte
-	VerifyBytes(msg []byte, sig []byte) bool
+	VerifyBytes(msg []byte, sig Signature) bool
 	Equals(PubKey) bool
+}
+
+type Signature interface {
+	Bytes() []byte
+	IsZero() bool
+	Equals(Signature) bool
 }
 
 type Symmetric interface {

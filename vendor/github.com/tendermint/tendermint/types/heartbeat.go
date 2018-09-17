@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 
+	"github.com/tendermint/tendermint/crypto"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
@@ -12,12 +13,12 @@ import (
 // json field tags because we always want the JSON
 // representation to be in its canonical form.
 type Heartbeat struct {
-	ValidatorAddress Address `json:"validator_address"`
-	ValidatorIndex   int     `json:"validator_index"`
-	Height           int64   `json:"height"`
-	Round            int     `json:"round"`
-	Sequence         int     `json:"sequence"`
-	Signature        []byte  `json:"signature"`
+	ValidatorAddress Address          `json:"validator_address"`
+	ValidatorIndex   int              `json:"validator_index"`
+	Height           int64            `json:"height"`
+	Round            int              `json:"round"`
+	Sequence         int              `json:"sequence"`
+	Signature        crypto.Signature `json:"signature"`
 }
 
 // SignBytes returns the Heartbeat bytes for signing.
@@ -47,6 +48,5 @@ func (heartbeat *Heartbeat) String() string {
 
 	return fmt.Sprintf("Heartbeat{%v:%X %v/%02d (%v) %v}",
 		heartbeat.ValidatorIndex, cmn.Fingerprint(heartbeat.ValidatorAddress),
-		heartbeat.Height, heartbeat.Round, heartbeat.Sequence,
-		fmt.Sprintf("/%X.../", cmn.Fingerprint(heartbeat.Signature[:])))
+		heartbeat.Height, heartbeat.Round, heartbeat.Sequence, heartbeat.Signature)
 }

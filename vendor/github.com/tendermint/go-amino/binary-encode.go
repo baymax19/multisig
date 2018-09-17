@@ -24,10 +24,10 @@ import (
 // CONTRACT: rv is valid.
 func (cdc *Codec) encodeReflectBinary(w io.Writer, info *TypeInfo, rv reflect.Value, fopts FieldOptions, bare bool) (err error) {
 	if rv.Kind() == reflect.Ptr {
-		panic("should not happen")
+		panic("not allowed to be called with a reflect.Ptr")
 	}
 	if !rv.IsValid() {
-		panic("should not happen")
+		panic("not allowed to be called with invalid / zero Value")
 	}
 	if printLog {
 		spew.Printf("(E) encodeReflectBinary(info: %v, rv: %#v (%v), fopts: %v)\n",
@@ -385,8 +385,8 @@ func (cdc *Codec) encodeReflectBinaryStruct(w io.Writer, info *TypeInfo, rv refl
 			}
 			// Get dereferenced field value and info.
 			var frv, isDefault = isDefaultValue(rv.Field(field.Index))
-			if isDefault {
-				// Do not encode default value fields.
+			if isDefault && !fopts.WriteEmpty {
+				// Do not encode default value fields (only if `amino:"write_empty"` is set).
 				continue
 			}
 			if field.UnpackedList {
@@ -396,16 +396,26 @@ func (cdc *Codec) encodeReflectBinaryStruct(w io.Writer, info *TypeInfo, rv refl
 					return
 				}
 			} else {
+				lBeforeKey := buf.Len()
 				// Write field key (number and type).
 				err = encodeFieldNumberAndTyp3(buf, field.BinFieldNum, typeToTyp3(finfo.Type, field.FieldOptions))
 				if err != nil {
 					return
 				}
-				// Write field from rv.
+				lBeforeValue := buf.Len()
+
+				// Write field value from rv.
 				err = cdc.encodeReflectBinary(buf, finfo, frv, field.FieldOptions, false)
 				if err != nil {
 					return
 				}
+				lAfterValue := buf.Len()
+
+				if !fopts.WriteEmpty && lBeforeValue == lAfterValue-1 && buf.Bytes()[buf.Len()-1] == 0x00 {
+					// rollback typ3/fieldnum and last byte if empty:
+					buf.Truncate(lBeforeKey)
+				}
+
 			}
 		}
 	}

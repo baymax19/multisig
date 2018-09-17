@@ -109,10 +109,6 @@ func RandInt63n(n int64) int64 {
 	return grand.Int63n(n)
 }
 
-func RandBool() bool {
-	return grand.Bool()
-}
-
 func RandFloat32() float32 {
 	return grand.Float32()
 }
@@ -276,13 +272,6 @@ func (r *Rand) Intn(n int) int {
 	i := r.rand.Intn(n)
 	r.Unlock()
 	return i
-}
-
-// Bool returns a uniformly random boolean
-func (r *Rand) Bool() bool {
-	// See https://github.com/golang/go/issues/23804#issuecomment-365370418
-	// for reasoning behind computing like this
-	return r.Int63()%2 == 0
 }
 
 // Perm returns a pseudo-random permutation of n integers in [0, n).

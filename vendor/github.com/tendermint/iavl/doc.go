@@ -1,11 +1,7 @@
-// Package iavl implements a versioned, snapshottable (immutable) AVL+ tree
-// for persisting key-value pairs.
-//
-//
 // Basic usage of VersionedTree.
 //
 //  import "github.com/tendermint/iavl"
-//  import "github.com/tendermint/tendermint/libs/db"
+//  import "github.com/tendermint/tmlibs/db"
 //  ...
 //
 //  tree := iavl.NewVersionedTree(db.NewMemDB(), 128)
@@ -27,12 +23,12 @@
 // Proof of existence:
 //
 //  root := tree.Hash()
-//  val, proof, err := tree.GetVersionedWithProof([]byte("bob"), 2) // "xyz", RangeProof, nil
+//  val, proof, err := tree.GetVersionedWithProof([]byte("bob"), 2) // "xyz", KeyProof, nil
 //  proof.Verify([]byte("bob"), val, root) // nil
 //
 // Proof of absence:
 //
-//  _, proof, err = tree.GetVersionedWithProof([]byte("tom"), 2) // nil, RangeProof, nil
+//  _, proof, err = tree.GetVersionedWithProof([]byte("tom"), 2) // nil, KeyProof, nil
 //  proof.Verify([]byte("tom"), nil, root) // nil
 //
 // Now we delete an old version:

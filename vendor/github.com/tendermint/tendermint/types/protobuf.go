@@ -38,7 +38,7 @@ func (tm2pb) Header(header *Header) abci.Header {
 		ChainID: header.ChainID,
 		Height:  header.Height,
 
-		Time:     header.Time,
+		Time:     header.Time.Unix(),
 		NumTxs:   int32(header.NumTxs), // XXX: overflow
 		TotalTxs: header.TotalTxs,
 
@@ -47,13 +47,6 @@ func (tm2pb) Header(header *Header) abci.Header {
 		AppHash:        header.AppHash,
 
 		// Proposer: TODO
-	}
-}
-
-func (tm2pb) ValidatorWithoutPubKey(val *Validator) abci.Validator {
-	return abci.Validator{
-		Address: val.PubKey.Address(),
-		Power:   val.VotingPower,
 	}
 }
 
@@ -136,9 +129,9 @@ func (tm2pb) Evidence(ev Evidence, valSet *ValidatorSet, evTime time.Time) abci.
 
 	return abci.Evidence{
 		Type:             evType,
-		Validator:        TM2PB.ValidatorWithoutPubKey(val),
+		Validator:        TM2PB.Validator(val),
 		Height:           ev.Height(),
-		Time:             evTime,
+		Time:             evTime.Unix(),
 		TotalVotingPower: valSet.TotalVotingPower(),
 	}
 }

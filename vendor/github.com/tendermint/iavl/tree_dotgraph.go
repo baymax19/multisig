@@ -41,7 +41,7 @@ var defaultGraphNodeAttrs = map[string]string{
 	"shape": "circle",
 }
 
-func WriteDOTGraph(w io.Writer, tree *Tree, paths []PathToLeaf) {
+func WriteDOTGraph(w io.Writer, tree *Tree, paths []*PathToKey) {
 	ctx := &graphContext{}
 
 	tree.root.hashWithCount()
@@ -69,7 +69,7 @@ func WriteDOTGraph(w io.Writer, tree *Tree, paths []PathToLeaf) {
 		}
 
 		for _, path := range paths {
-			for _, n := range path {
+			for _, n := range path.InnerNodes {
 				if bytes.Equal(n.Left, node.hash) || bytes.Equal(n.Right, node.hash) {
 					graphNode.Attrs["peripheries"] = "2"
 					graphNode.Attrs["style"] = "filled"

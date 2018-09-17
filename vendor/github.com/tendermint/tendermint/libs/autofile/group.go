@@ -85,6 +85,7 @@ func OpenGroup(headPath string) (g *Group, err error) {
 		Head:           head,
 		headBuf:        bufio.NewWriterSize(head, 4096*10),
 		Dir:            dir,
+		ticker:         time.NewTicker(groupCheckDuration),
 		headSizeLimit:  defaultHeadSizeLimit,
 		totalSizeLimit: defaultTotalSizeLimit,
 		minIndex:       0,
@@ -101,7 +102,6 @@ func OpenGroup(headPath string) (g *Group, err error) {
 // OnStart implements Service by starting the goroutine that checks file and
 // group limits.
 func (g *Group) OnStart() error {
-	g.ticker = time.NewTicker(groupCheckDuration)
 	go g.processTicks()
 	return nil
 }
@@ -199,13 +199,19 @@ func (g *Group) Flush() error {
 }
 
 func (g *Group) processTicks() {
-	select {
-	case <-g.ticker.C:
+	for {
+		_, ok := <-g.ticker.C
+		if !ok {
+			return // Done.
+		}
 		g.checkHeadSizeLimit()
 		g.checkTotalSizeLimit()
-	case <-g.Quit():
-		return
 	}
+}
+
+// NOTE: for testing
+func (g *Group) stopTicker() {
+	g.ticker.Stop()
 }
 
 // NOTE: this function is called manually in tests.

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	cmn "github.com/tendermint/tendermint/libs/common"
+	"github.com/tendermint/tendermint/crypto"
 )
 
 var (
@@ -19,13 +19,13 @@ var (
 // to be considered valid. It may depend on votes from a previous round,
 // a so-called Proof-of-Lock (POL) round, as noted in the POLRound and POLBlockID.
 type Proposal struct {
-	Height           int64         `json:"height"`
-	Round            int           `json:"round"`
-	Timestamp        time.Time     `json:"timestamp"`
-	BlockPartsHeader PartSetHeader `json:"block_parts_header"`
-	POLRound         int           `json:"pol_round"`    // -1 if null.
-	POLBlockID       BlockID       `json:"pol_block_id"` // zero if null.
-	Signature        []byte        `json:"signature"`
+	Height           int64            `json:"height"`
+	Round            int              `json:"round"`
+	Timestamp        time.Time        `json:"timestamp"`
+	BlockPartsHeader PartSetHeader    `json:"block_parts_header"`
+	POLRound         int              `json:"pol_round"`    // -1 if null.
+	POLBlockID       BlockID          `json:"pol_block_id"` // zero if null.
+	Signature        crypto.Signature `json:"signature"`
 }
 
 // NewProposal returns a new Proposal.
@@ -43,10 +43,9 @@ func NewProposal(height int64, round int, blockPartsHeader PartSetHeader, polRou
 
 // String returns a string representation of the Proposal.
 func (p *Proposal) String() string {
-	return fmt.Sprintf("Proposal{%v/%v %v (%v,%v) %X @ %s}",
+	return fmt.Sprintf("Proposal{%v/%v %v (%v,%v) %v @ %s}",
 		p.Height, p.Round, p.BlockPartsHeader, p.POLRound,
-		p.POLBlockID,
-		cmn.Fingerprint(p.Signature), CanonicalTime(p.Timestamp))
+		p.POLBlockID, p.Signature, CanonicalTime(p.Timestamp))
 }
 
 // SignBytes returns the Proposal bytes for signing

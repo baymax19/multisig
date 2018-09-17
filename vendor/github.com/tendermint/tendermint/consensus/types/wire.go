@@ -2,11 +2,11 @@ package types
 
 import (
 	"github.com/tendermint/go-amino"
-	"github.com/tendermint/tendermint/types"
+	cryptoAmino "github.com/tendermint/tendermint/crypto/encoding/amino"
 )
 
 var cdc = amino.NewCodec()
 
 func init() {
-	types.RegisterBlockAmino(cdc)
+	cryptoAmino.RegisterAmino(cdc)
 }
