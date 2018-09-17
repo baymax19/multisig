@@ -24,7 +24,7 @@ build:
     - ln -s /builds/baymax19/multisig $GOPATH/src
     - cd $GOPATH/src/multisig
     - dep init && dep ensure
-    - echo which dep
+    - which dep
 #    - cd $GOPATH/src
 #    - mkdir -p gitlab.com/$CI_PROJECT_NAMESPACE
 #    - cd gitlab.com/$CI_PROJECT_NAMESPACE
