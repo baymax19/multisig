@@ -8,13 +8,19 @@ build:
     paths:
      - vendor/
   before_script:
-    - cd $GOPATH/src
+#    - cd $GOPATH/src
 #    - mkdir -p gitlab.com/$CI_PROJECT_NAMESPACE
 #    - cd gitlab.com/$CI_PROJECT_NAMESPACE
-    - mkdir -p sentinel
-    - ln -s /builds/baymax19/multisig $GOPATH/src
-    - cd $GOPATH/src/multisig
+#    - mkdir -p sentinel
+#    - ln -s /builds/baymax19/multisig $GOPATH/src
+#    - cd $GOPATH/src/multisig
 #    - dep ensure
+    - cd $GOPATH/src
+    - mkdir -p gitlab.com/$CI_PROJECT_NAMESPACE
+    - cd gitlab.com/$CI_PROJECT_NAMESPACE
+    - ln -s $CI_PROJECT_DIR
+    - cd $CI_PROJECT_NAME
+    - dep ensure -vendor-only
     - echo $GOBIN,$GOPATH
   script:
     - make all
