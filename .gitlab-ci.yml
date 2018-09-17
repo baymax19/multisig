@@ -4,6 +4,9 @@ stages:
 build:
   stage: build
   image: golang:1.10
+  cache:
+    paths:
+     - vendor/
   before_script:
     - cd $GOPATH/src
 #    - go get github.com/tools/godep
